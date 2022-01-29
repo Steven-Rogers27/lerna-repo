@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../../../static/common.css" />
+		<link rel="stylesheet" type="text/css" href="../../../static/component.css"/>
+		<link rel="stylesheet" type="text/css" href="../../../static/tableFont.css"/>
+		<link rel="stylesheet" type="text/css" href="../../../static/elementui.css" />
+		<link rel="stylesheet" href="../../../static/ztree/zTreeStyle.css" />
+		<style type="text/css">
+
+		</style>
+	</head>
+	<body>
+		<div id="constructionPage" v-cloak>
+			<div style="padding:30px 20px;box-sizing: border-box;">
+				<div style="display: flex;align-items: center;margin-bottom:15px;">
+					<div class="contentTitle">工序内容：</div>
+					<input type="text" class="input" style="width: 345px;" placeholder="输入工序" v-model="workName" />
+				</div>
+				<div style="display: flex;align-items: center;margin-bottom:15px;">
+					<div class="contentTitle">班组类型：</div>
+					<select class="select selectTeam" style="width: 345px;" v-model="teamTypeId">
+						<option value="">请选择</option>
+						<option :value="item.cid" v-for="(item,index) in teamList" :key="item.cid" ref="newText">{{item.cname}}</option>
+					</select>
+				</div>
+				<div style="display: flex;align-items: center;padding-bottom:15px;border-bottom: 1px solid #F2F2F2;box-sizing: border-box;">
+					<div class="contentTitle">管理部门：</div>
+					<select class="select selectDepart" style="width: 345px;" v-model="departmentId">
+						<option value="">请选择</option>
+						<option :value="item.deId" v-for="(item,index) in departmentList" :key="item.deId">{{item.departName}}</option>
+					</select>
+				</div>
+				<div style="display: flex;align-items: center;height: 40px;line-height: 40px;justify-content: space-between;">
+					<div class="contentTitle">数量类型：</div>
+					<div><span class="listToDetail" @click="addNumberType">添加工程数量类型</span></div>
+				</div>
+				<div>
+					<el-table :data="workNumTypeList" border max-height="200" class="tableBody" style="width: 100%">
+						<el-table-column label="序号" min-width="10%">
+							<template slot-scope="scope">
+								<span>{{scope.$index+1}}</span>
+							</template>
+						</el-table-column>
+						<el-table-column label="数量名称" min-width="30%">
+							<template slot-scope="scope">
+								<input type="text" class="input tableEdit" style="width: 100%;border: none;outline-style: none;text-align: center;"
+								 v-model="scope.row.name" />
+							</template>
+						</el-table-column>
+						<el-table-column label="单位" min-width="10%">
+							<template slot-scope="scope">
+								<input type="text" class="input tableEdit" style="width: 100%;border: none;outline-style: none;text-align: center;"
+								 v-model="scope.row.unit" />
+							</template>
+						</el-table-column>
+						<el-table-column label="类别" min-width="10%">
+							<template slot-scope="scope">
+								<input type="text" class="input tableEdit" style="width: 100%;border: none;outline-style: none;text-align: center;"
+								 v-model="scope.row.type" />
+							</template>
+						</el-table-column>
+						<el-table-column label="钢筋" min-width="10%">
+							<template slot-scope="scope">
+								<input type="text" class="input tableEdit" style="width: 100%;border: none;outline-style: none;text-align: center;"
+								 v-model="scope.row.rebarCode" />
+							</template>
+						</el-table-column>
+						<el-table-column label="混凝土" min-width="10%">
+							<template slot-scope="scope">
+								<input type="text" class="input tableEdit" style="width: 100%;border: none;outline-style: none;text-align: center;"
+								 v-model="scope.row.concreteCode" />
+							</template>
+						</el-table-column>
+						<el-table-column label="操作" min-width="20%">
+							<template slot-scope="scope">
+								<!-- <span class="listToDetail" @click="deleteNumberType(scope.row,scope.$index)">删除</span> -->
+								<zj-icon-button icon-class="fa fa-trash-alt" @click="deleteNumberType(scope.row,scope.$index)" tip="删除"></zj-icon-button>
+							</template>
+						</el-table-column>
+					</el-table>
+				</div>
+				<div style="display: flex;align-items: center;margin-bottom: 15px;">
+					<div class="contentTitle">其他属性：</div>
+					<div>
+						<el-checkbox-group v-model="checkList">
+							<el-checkbox label="分项" style="margin-left: 10px;"></el-checkbox>
+						</el-checkbox-group>
+					</div>
+				</div>
+				<div style="display: flex;align-items: center;margin-bottom: 15px;">
+					<div class="contentTitle"></div>
+					<div>
+						<button v-if="!updateId" type="button" class="btnBlue" style="width: 80px;" @click="saveWorkContent">保存</button>
+						<button v-if="updateId" type="button" class="btnBlue" style="width: 80px;" @click="saveUpdate">保存</button>
+						<button type="button" class="btnGray ml20" style="width: 80px;" @click="closeModal">取消</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script src="../../../static/js/jquery-1.8.3.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/vue.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/elementui.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/dx.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript" src="../../../static/ztree/jquery.ztree.all.min.js"></script>
+	<script src="../../../static/js/component.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/componentOne.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/componentTwo.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		var vm = new Vue({
+			el: '#constructionPage',
+			data: {
+				list:[],
+				teamList: [], //班组类型列表
+				departmentList: [], //部门类型列表
+				departmentId: '', //管理部门id
+				departmentName: '', //管理部门名称
+				isHaveNumb: 0, //是否数量
+				isHaveSubitem: 0, //是否分项
+				teamTypeId: '', //班组类型id
+				teamTypeName: '', //班组类型名称
+				unitName: '', //单位
+				workName: '', //工作内容名称
+				updateId: 0,
+				workNumTypeList: [],
+				checkList:[],
+				id: '',
+				parentId: '',
+			},
+			mounted: function() {
+				this.id = DX.getParam('id')
+				this.parentId = DX.getParam('parentId')
+				this.getDepartment()
+				this.getTeamtype()
+				this.queryWorkContent()
+				
+			},
+			methods: {
+				firstGet:function(){
+					var $this = this
+					var index = ''
+					$.each($this.list,function(i,v){
+						if(v.id==$this.id){
+							index = i
+						}
+					})
+					this.updateId=1
+					this.getContentById($this.id,index)
+				},
+				// 修改弹窗回显数据
+				getContentById:function(id,index){
+					var $this=this
+					$this.workName=this.list[index].name
+					$this.teamTypeId=this.list[index].tbsGroup
+					$this.departmentId=this.list[index].obsGroup
+					$this.orderNumber=$this.list[index].orderNumber
+					$this.id=id
+					if(!$this.list[index].split){
+						$this.checkList=[]
+						$this.isHaveSubitem=0
+					}else{
+						$this.checkList=['分项']
+						$this.isHaveSubitem=1
+					}
+					this.getWorkNumTypeList(id)
+				},
+				closeModal:function(){
+					DX.closeModal()
+				},
+				// 查询右侧工作内容
+				queryWorkContent: function() {
+					var $this = this
+					$this.list = []
+					DX.ajax_method({
+						'url': "/wbsp/xjob/list",
+						'param': {
+							'parentId': $this.parentId
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.list = res.data
+								$this.height = ($this.list.length + 1) * 29 + 1
+								setTimeout(function() {
+									$.each($this.list, function(i, v) {
+										$.each($this.departmentList, function(ii, vv) {
+											if ($this.departmentList[ii].deId == $this.list[i].obsGroup) {
+												$this.$set($this.list[i], 'obsName', $this.departmentList[ii].departName)
+											}
+										})
+									})
+									$.each($this.list, function(i, v) {
+										$.each($this.teamList, function(ii, vv) {
+											if ($this.teamList[ii].cid == $this.list[i].tbsGroup) {
+												$this.$set($this.list[i], 'tbsName', $this.teamList[ii].cname)
+											}
+										})
+									})
+								}, 100)
+								$this.firstGet()
+							} else {
+								DX.optionTitle(res.msg)
+							}
+						}
+					})
+				},
+				// 添加工作内容保存
+				saveWorkContent: function() {
+					var $this = this
+					if (!this.workName) {
+						DX.optionTitle('请填写工序名称')
+						return
+					}
+					this.teamTypeName = $(".selectTeam").find("option:selected").text()
+					this.departmentName = $(".selectDepart").find("option:selected").text()
+					$.each(this.workNumTypeList, function(i, v) {
+						v.orderNumber = i + 1
+						if ($this.workNumTypeList.length == 1 && !v.name) {
+							$this.workNumTypeList = []
+						}
+						if (v.rebarCode) {
+							if (v.rebarCode.charAt(0) !== "G") {
+								v.rebarCode = 'G' + v.rebarCode
+							}
+						}
+						if (v.concreteCode) {
+							if (v.concreteCode.charAt(0) !== "T") {
+								v.concreteCode = 'T' + v.concreteCode
+							}
+						}
+					})
+					DX.ajax_method({
+						'url': '/prod/xjob/add',
+						'type': 'POST',
+						'data': {
+							'obsGroup': $this.departmentId ? $this.departmentId : '',
+							'orderNumber': $this.treeNode.orderNumber,
+							'parentId': $this.treeNode.id,
+							'tbsGroup': $this.teamTypeId,
+							'split': $this.isHaveSubitem,
+							'name': $this.workName,
+							'projNumDtos': $this.workNumTypeList,
+							'id': $this.ids.length ? $this.ids[$this.ids.length - 1] : ''
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle('操作成功')
+								$('.addWorkContentModal').hide()
+								$this.hideAddModal = true
+								$this.id = $this.treeNode.id
+								$this.queryWorkContent()
+							} else {
+								DX.optionTitle(res.msg)
+							}
+						}
+					})
+				},
+				// 获取班组类型
+				getTeamtype: function() {
+					var $this = this
+					DX.ajax_method({
+						'url': '/eva/group/findTeamType',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.teamList = res.data
+							} else {
+								DX.optionTitle(res.mag)
+							}
+						}
+					})
+				},
+				// 获取管理部门
+				getDepartment: function() {
+					var $this = this
+					DX.ajax_method({
+						'url': '/hrs/dxPart/findProjectDepartments',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.departmentList = res.data
+							} else {
+								DX.optionTitle(res.msg)
+							}
+						}
+					})
+				},
+				// 打开修改弹窗
+				updateWorkContent: function() {
+					var $this = this
+					var index = ''
+					$.each($this.list, function(i, v) {
+						if (v.id == $this.id) {
+							index = i
+						}
+					})
+					$('.addWorkContentModal').show()
+					this.updateId = 1
+					this.hideAddModal = false
+					$('.winText')[1].textContent = "修改工序"
+					// this.getTeamtype()
+					// this.getDepartment()
+
+					this.getContentById($this.id, index)
+				},
+				// 修改弹窗回显数据
+				getContentById: function(id, index) {
+					var $this = this
+					$this.workName = this.list[index].name
+					$this.teamTypeId = this.list[index].tbsGroup
+					$this.departmentId = this.list[index].obsGroup
+					$this.orderNumber = $this.list[index].orderNumber
+					$this.id = id
+					if (!$this.list[index].split) {
+						$this.checkList = []
+						$this.isHaveSubitem = 0
+					} else {
+						$this.checkList = ['分项']
+						$this.isHaveSubitem = 1
+					}
+					this.getWorkNumTypeList(id)
+				},
+				// 查询当前工作工程数量类型
+				getWorkNumTypeList: function(id) {
+					var $this = this
+					DX.ajax_method({
+						'url': '/wbsp/xprojnum/list',
+						'param': {
+							'xjobId': id
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								if (!res.data.length) {
+									$this.workNumTypeList = [{}]
+								} else {
+									$this.workNumTypeList = res.data
+								}
+							} else {
+								alert(res.msg)
+							}
+						}
+					})
+				},
+				// 添加工程数量类型
+				addNumberType: function() {
+					this.workNumTypeList.push({})
+				},
+				// 删除工程数量类型
+				deleteNumberType: function(row, index) {
+					var $this = this
+					this.workNumTypeList.splice(index, 1)
+				},
+				// 修改保存
+				saveUpdate: function() {
+					var $this = this
+					if (!this.workName) {
+						DX.optionTitle('请填写工序名称')
+						return
+					}
+					this.teamTypeName = $(".selectTeam").find("option:selected").text()
+					$.each(this.workNumTypeList, function(i, v) {
+						v.orderNumber = i + 1
+						if ($this.workNumTypeList.length == 1 && !v.name) {
+							$this.workNumTypeList = []
+						}
+						if (v.rebarCode) {
+							if (v.rebarCode.charAt(0) !== "G") {
+								v.rebarCode = 'G' + v.rebarCode
+							}
+						}
+						if (v.concreteCode) {
+							if (v.concreteCode.charAt(0) !== "T") {
+								v.concreteCode = 'T' + v.concreteCode
+							}
+						}
+						if (!v.name) {
+							$this.workNumTypeList.splice(i, 1)
+						}
+					})
+					DX.ajax_method({
+						'url': '/prod/xjob/update',
+						'type': 'POST',
+						'data': {
+							'obsGroup': $this.departmentId,
+							'orderNumber': $this.orderNumber,
+							'parentId': $this.parentId,
+							'id': $this.id,
+							'tbsGroup': $this.teamTypeId,
+							'split': $this.isHaveSubitem,
+							'name': $this.workName,
+							'projNumDtos': $this.workNumTypeList
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle('操作成功')
+								DX.domParent('vm.getDevice(5)')
+								DX.closeModal()
+							} else {
+								DX.optionTitle(res.msg)
+							}
+						}
+					})
+				},
+				updateQuantities: function(num, val) {
+					var $this = this
+					var obj = {}
+					switch (Number(num)) {
+						case 1:
+							obj = {
+								'quantityCalc': val.quantityCalc,
+								'id': val.id,
+								"jobId": $this.id,
+								"name": val.name,
+								'type': val.type
+							}
+							break;
+						case 2:
+							obj = {
+								'quantityDesign': val.quantityDesign,
+								'id': val.id,
+								"jobId": $this.id,
+								"name": val.name,
+								'type': val.type
+							}
+							break;
+						case 3:
+							obj = {
+								'quantityReview': val.quantityReview,
+								'id': val.id,
+								"jobId": $this.id,
+								"name": val.name,
+								'type': val.type
+							}
+							break;
+						case 4:
+							obj = {
+								'quantityAudit': val.quantityAudit,
+								'id': val.id,
+								"jobId": $this.id,
+								"name": val.name,
+								'type': val.type
+							}
+							break;
+						default:
+							break;
+					}
+					DX.ajax_method({
+						'type': 'POST',
+						'data': obj,
+						'url': '/wbsp/xprojnum/update',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle('修改成功')
+								$this.getGongcheng()
+							}
+						},
+					});
+				},
+			},
+		})
+	</script>
+</html>

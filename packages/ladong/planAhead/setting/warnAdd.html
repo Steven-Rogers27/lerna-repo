@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../../../static/common.css" />
+		<link rel="stylesheet" type="text/css" href="../../../static/elementui.css" />
+		<link rel="stylesheet" href="../../../static/ztree/zTreeStyle.css" />
+		<style type="text/css">
+			#addModalPage {
+				padding: 15px;
+			}
+
+			body {
+				background-color: #fff;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="companyIndexPage" v-cloak>
+			<div class="box">
+				<p style="padding: 15px 0;border-bottom: 1px solid #e2e2e2;">
+					显示预警信息
+				</p>
+				<div v-for="v,i in info" :key="i">
+					<p style="margin: 10px 0;display: flex;justify-content: space-between;"><span style="font-weight: bold;">设置责任人：</span>
+						<span style="color: red;cursor: pointer;" v-if="i!=0" @click="del(i,v)">删除</span></p>
+					<p style="margin: 10px 0;">责任人：</p>
+					<div style="margin: 10px 0;">
+						<input class="input" placeholder="点击选择责任人" readonly v-model="v.namePhone" style="width: 85%;cursor: pointer;" @click="openAddModal(i,v)" />
+					</div>
+					<p style="margin: 10px 0;">任务描述：</p>
+					<div style="margin: 10px 0;">
+						<textarea placeholder="请添加描述" rows="" cols="" v-model="v.taskDescription" class="textarea" style="width: 85%;height: 90px;">
+						</textarea>
+					</div>
+				</div>
+				<p style="color: #3798f6;cursor: pointer;" @click="addInfo">添加新责任人</p>
+				<div style="margin: 20px 0;display: flex;justify-content: center;">
+					<span class="btnGray" @click="goBack">取消</span>
+					<span class="btnBlue" style="margin-left: 10px;" @click="sub">保存</span>
+				</div>
+			</div>
+			<modal :param="param" ref="modal" class="principalModal" @close="closeModal()" style="display: none;">
+				<div id="addModalPage">
+					<div class="title" style="margin-bottom: 15px;">
+						<span>部门：</span>
+						<select class="select mr20" v-model="deId">
+							<option value="">请选择部门</option>
+							<option :value="d.deId" v-for="(d,i) in departList" :key="i">{{d.departmentName}}</option>
+						</select>
+						<span>职位：</span>
+						<select class="select mr20" v-model="jid">
+							<option value="">请选择职位</option>
+							<option :value="j.jid" v-for="(j,i) in jobList" :key="i">{{j.jobName}}</option>
+						</select>
+						<input type="text" class="input" style="width: 200px;" v-model="condition" placeholder="输入姓名搜索" />
+					</div>
+					<!--                    <div class="span" style="color: #00aaff;">系统为您找到职位是“技术员”的责任人</div>-->
+					<el-table :data="tableData" border height="290" style="width: 100%">
+						<el-table-column label="序号" type="index" min-width="10%">
+						</el-table-column>
+						<el-table-column prop="name" label="姓名" min-width="18%">
+						</el-table-column>
+						<el-table-column prop="departName" label="部门" min-width="18%">
+						</el-table-column>
+						<el-table-column prop="jobName" label="职位" min-width="18%">
+						</el-table-column>
+						<el-table-column prop="phone" label="联系方式" min-width="18%">
+						</el-table-column>
+						<el-table-column label="操作" min-width="18%">
+							<template slot-scope="scope">
+								<span class="listToDetail" @click="choose(scope.row)">选择</span>
+							</template>
+						</el-table-column>
+					</el-table>
+				</div>
+			</modal>
+		</div>
+	</body>
+	<script src="../../../static/js/jquery-1.8.3.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/vue.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/elementui.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/dx.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/component.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		var vm = new Vue({
+			el: '#companyIndexPage',
+			data: function() {
+				return {
+					param: {
+						width: 680,
+						height: 400,
+						title: "添加责任人"
+					},
+					jid: '',
+					deId: '',
+					condition: '',
+					tableData: [],
+					departList: [],
+					jobList: [],
+					info: [{
+						"userId": "",
+						"userName": "",
+						"userPhone": "",
+						"taskDescription": "",
+						"namePhone": ''
+					}],
+					index: 0,
+					val: 0,
+					id:-1,
+					partId:''
+				}
+			},
+			mounted: function() {
+				this.partId = DX.getParam('partId')
+				this.getdata()
+			},
+			methods: {
+				getdata:function(){
+					var $this = this
+					DX.ajax_method({
+						'type': 'GET',
+						'param': {
+							'partId': $this.partId
+						},
+						'url': '/prod/dispose/warning/get/disposewarn/info',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.info = []
+								if(res.data.warningInfo.length!=0){
+									$this.id = res.data.disposeWarning.id
+									$.each(res.data.warningInfo,function(i,v){
+										$this.info.push({
+											"userId": v.userId,
+											"userName": v.userName,
+											"userPhone": v.userPhone,
+											"taskDescription": v.taskDescription,
+											"namePhone": v.userName + ' | ' + v.userPhone,
+											"id":v.id
+										})
+									})
+								}else{
+									$this.info.push({
+										"userId": "",
+										"userName": "",
+										"userPhone": "",
+										"taskDescription": "",
+										"namePhone": ''
+									})
+								}
+							}
+						},
+					});
+				},
+				addInfo: function() {
+					this.info.push({
+						"userId": "",
+						"userName": "",
+						"userPhone": "",
+						"taskDescription": "",
+						"namePhone": ''
+					})
+				},
+				// 打开添加责任人窗口
+				openAddModal: function(i, v) {
+					var that = this;
+					$('.principalModal').show();
+					that.getDepartmentList();
+					that.getUserList();
+					this.index = i
+					this.val = v
+				},
+				choose: function(val) {
+					this.info[this.index].namePhone = val.name + ' | ' + val.phone
+					this.info[this.index].userName = val.name
+					this.info[this.index].userId = val.id
+					this.info[this.index].userPhone = val.phone
+					this.closeModal()
+				},
+				del: function(i,v) {
+					var $this = this
+					this.info.splice(i, 1);
+					if(v.id){
+						DX.ajax_method({
+							type:'POST',
+							url: '/prod/dispose/warning/delete/disposewarn/info',
+							param:{
+								id:v.id
+							},
+							callBack: function(res) {
+								if (res.code === 200) {
+									$this.getdata()
+								}
+							}
+						})
+					}
+				},
+				getDepartmentList: function() {
+					var that = this;
+					DX.ajax_method({
+						url: '/prod/dispose/warning/get/project/department',
+						callBack: function(res) {
+							if (res.code === 200) {
+								that.departList = res.data
+							}
+						}
+					})
+				},
+				getUserList: function() {
+					var that = this;
+					DX.ajax_method({
+						url: '/prod/dispose/warning/get/project/userList',
+						type: 'GET',
+						param: {
+							condition: that.condition,
+							deId: that.deId,
+							jid: that.jid
+						},
+						callBack: function(res) {
+							if (res.code === 200) {
+								that.tableData = res.data;
+							}
+						}
+					})
+				},
+				getJobList() {
+					var that = this;
+					DX.ajax_method({
+						url: '/prod/dispose/warning/get/project/job',
+						param: {
+							deId: that.deId
+						},
+						callBack: function(res) {
+							if (res.code === 200) {
+								that.jobList = res.data
+							}
+						}
+					})
+				},
+				goBack: function() {
+					window.location.href = 'warn.html'
+				},
+				closeModal: function() {
+					$('.principalModal').hide()
+				},
+				sub: function() {
+					var that = this;
+					var userIdflag = false
+					var taskflag = false
+					$.each(that.info,function(i,v){
+						if(v.userId==""){
+							DX.optionTitle('责任人不可为空')
+							userIdflag = true
+						}
+						if(v.taskDescription==''){
+							DX.optionTitle('任务描述不可为空')
+							taskflag = true
+						}
+						if(userIdflag || taskflag){
+							return false
+						}
+					})
+					if(userIdflag || taskflag){
+						return
+					}
+					var obj = {
+						"id": that.id==-1 ? "" : that.id,
+						"partId": that.partId,
+						// "warningId": "预警信息id",
+						// "warningTitle": "预警信息",
+						"info":that.info
+					}
+					DX.ajax_method({
+						url: '/prod/dispose/warning/save/update/disposeWarn',
+						type: 'POST',
+						param: {
+							infoJson : JSON.stringify(obj)
+						},
+						callBack: function(res) {
+							if (res.code === 200) {
+								window.location.href = 'warn.html?id=' + that.partId
+							}
+						}
+					})
+
+				}
+			},
+			watch: {
+				deId: function(newVal, oldVal) {
+					var that = this;
+					if (newVal == '') {
+						that.jobList = [];
+						that.jid = '';
+					} else {
+						that.jid = ''
+						that.getJobList()
+					}
+					that.getUserList()
+				},
+				jid: function(newVal, oldVal) {
+					var that = this;
+					that.getUserList()
+				},
+				condition: function(newVal, oldVal) {
+					var that = this;
+					that.getUserList()
+				}
+			}
+		})
+	</script>
+</html>

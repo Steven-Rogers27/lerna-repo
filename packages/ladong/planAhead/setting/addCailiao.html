@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../../../static/common.css" />
+		<link rel="stylesheet" type="text/css" href="../../../static/elementui.css" />
+		<link rel="stylesheet" type="text/css" href="../../../static/component.css" />
+		<link rel="stylesheet" type="text/css" href="../../../static/tableFont.css" />
+		<style type="text/css">
+			html {
+				background-color: #fff;
+			}
+
+			::-webkit-scrollbar {
+				width: 9px;
+				height: 9px;
+			}
+
+			::-webkit-scrollbar-track {
+				background: rgba(0, 0, 0, .1);
+				border-radius: 8px;
+			}
+
+			::-webkit-scrollbar-thumb {
+				background: rgb(201, 201, 202);
+				border-radius: 8px;
+			}
+
+			::-webkit-scrollbar-thumb:hover {
+				background: rgb(162, 162, 163);
+			}
+		</style>
+	</head>
+	<body>
+		<div id="constructionPage" v-cloak>
+			<div style="margin: 15px 0;height: calc(100% - 55px);overflow: auto;">
+				<div style="height: 414px;" v-show="isWz && !isend">
+					<el-tree :data="list" show-checkbox node-key="id" ref="tree" highlight-current
+						:props="defaultProps">
+					</el-tree>
+				</div>
+				<div style="height: 414px;" v-show="!isWz && !isend">
+					<div style="margin: 15px 0;">
+						<span style="width: 65px;display: inline-block;text-align: right;">材料名称：</span>
+						<input placeholder="请输入材料名称" v-model="materialName" class="input" style="width: 390px;" />
+					</div>
+					<div style="margin: 15px 0;">
+						<span style="width: 65px;display: inline-block;text-align: right;">规格型号：</span>
+						<input placeholder="请输入规格型号"  v-model="materialModel" class="input" style="width: 390px;" />
+					</div>
+					<div style="margin: 15px 0;">
+						<span style="width: 65px;display: inline-block;text-align: right;">单位：</span>
+						<select class="select" id="clSelect" style="width: 390px;">
+							<option v-for="(v,i) in unitList" :value="v.id">{{v.name}}</option>
+						</select>
+					</div>
+				</div>
+				<div style="height: 414px;" v-show="isend">
+					<p>请填写计划量与实际量</p>
+					<el-table :data="endList" border style="width: 100%;margin-top: 10px;">
+						<el-table-column prop="name" label="材料名称" min-width="20%">
+						</el-table-column>
+						<el-table-column prop="model" label="规格型号" min-width="20%">
+						</el-table-column>
+						</el-table-column>
+						<el-table-column prop="" label="计算量" min-width="10%">
+							<template slot-scope="obj">
+								<input class="input tableEdit" style="width: 100%;height: 100%;border: none;outline: none;" type="number" v-model="obj.row.quantityDesign" />
+							</template>
+						</el-table-column>
+						<el-table-column prop="" label="实际量" min-width="10%">
+							<template slot-scope="obj">
+								<input class="input tableEdit" style="width: 100%;height: 100%;border: none;outline: none;" type="number" v-model="obj.row.quantityImpl" />
+							</template>
+						</el-table-column>
+					</el-table>
+				</div>
+				
+				<p style="text-align: center;margin-top: 10px;position: absolute;bottom: 15px;left: 177px;">
+					<button class="btnBlue" v-show="isWz && !isend" @click="openWz">新增材料</button>
+					<button class="btnBlue" @click="add" v-show="isWz && !isend" style="margin-left: 20px;">添加</button>
+					<button class="btnBlue" v-show="!isWz && !isend" style="margin-left: 20px;" @click="addLs">添加</button>
+					<!-- 物资保存 -->
+					<button class="btnBlue" v-show="!isWz && !isend" @click="openWz" style="margin-left: 20px;">返回</button>
+					<!-- 最终保存 -->
+					<button class="btnBlue" v-show="isend" @click="endAdd" style="margin-left: 20px;">保存</button>
+					<button class="btnBlue" v-show="isend" @click="isend=false" style="margin-left: 20px;">取消</button>
+				</p>
+			</div>
+		</div>
+	</body>
+	<script src="../../../static/js/jquery-1.8.3.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/vue.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/elementui.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/dx.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/component.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/componentOne.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/componentTwo.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		var vm = new Vue({
+			el: '#constructionPage',
+			data: {
+				id: '',
+				parentId: '',
+				content: '',
+				list: [],
+				defaultProps: {
+					children: 'children',
+					label: 'name',
+					disabled: 'isParent',
+				},
+				cailiaoList: [],
+				isWz: true,
+				unitList: [], //物资单位
+				materialModel:'',
+				materialName:'',
+				isend:false,//是否是最终提交
+				endList:[],
+				jinchiNum:1,
+				jinchiTime:''
+			},
+			mounted: function() {
+				this.id = DX.getParam('id')
+				this.jinchiNum = DX.getParam('jinchiNum')
+				this.parentId = DX.getParam('parentId')
+				this.jinchiTime = decodeURI(DX.getParam('jinchiTime'))
+				this.getlist()
+				this.getCaiLiao()
+				this.getUnit() //获取物资单位
+			},
+			methods: {
+				endAdd:function(){
+					var $this = this
+					var adflag = true
+					$.each($this.endList, function(i, v) {
+						if(v.quantityDesign=='' || v.quantityImpl=='' ){
+							DX.optionTitle('计划量及实际量不可为空')
+							adflag = false
+							return false
+						}
+					})
+					if(!adflag){
+						return
+					}
+					if(!this.isWz){//新增材料
+						var materialTemparary ={
+							"materialModel": $this.materialModel,
+							"materialName":  $this.materialName,
+							"materialUnitId": $("#clSelect option:selected").val(),
+							"materialUnitName": $("#clSelect").find("option:selected").text()
+						}
+						DX.ajax_method({
+							'type':'POST',
+							'url': '/materials/material/saveTemporaryMaterial',
+							'data': materialTemparary,
+							'callBack': function(res) {
+								if (res.code == 200) {
+									$this.endAddNew(res.data)//将临时材料加入拉动式生产
+								} else {
+									DX.optionTitle(res.msg);
+								}
+							}
+						})
+					}else{  //直接选的
+						$this.endAddSelect()
+					}
+				},
+				endAddNew:function(data){
+					var $this = this
+					var url = "/prod/xmaterial/batchAdd"
+					var jsonarr = []
+					jsonarr.push({
+						'materialId':data.materialId,
+						'materialModelId':data.materialModelId,
+						"quantityDesign": $this.endList[0].quantityDesign,
+						"quantityImpl": $this.endList[0].quantityImpl,
+						"xwbsId": $this.parentId,
+						"xjobId": $this.id,
+						'xprojNumId':''
+					})
+					if(this.jinchiNum==2){
+						url = '/prod/xmaterial/supplement'
+						var jsonarr = []
+						jsonarr.push({
+							'materialId':data.materialId,
+							'materialModelId':data.materialModelId,
+							"quantityDesign": $this.endList[0].quantityDesign,
+							"quantityImpl": $this.endList[0].quantityImpl,
+							"xwbsId": $this.parentId,
+							"xjobId": $this.id,
+							'xprojNumId':'',
+							'sampleTime':$this.jinchiTime
+						})
+					}
+					DX.ajax_method({
+						'url': url,
+						'type': 'POST',
+						'data': jsonarr,
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle()
+								DX.domParent('vm.getDevice(3)')
+								DX.closeModal()
+							} else {
+								DX.optionTitle(res.msg)
+							}
+						}
+					})
+				},
+				endAddSelect:function(){
+					var $this = this
+					var url = "/prod/xmaterial/batchAdd"
+					var jsonarr = []
+					$.each($this.endList, function(i, v) {
+						jsonarr.push({
+							'materialId':v.materialId,
+							'materialModelId':v.id,
+							"quantityDesign": v.quantityDesign,
+							"quantityImpl": v.quantityImpl,
+							"xwbsId": $this.parentId,
+							"xjobId": $this.id,
+							'xprojNumId':''
+						})
+					})
+					if(this.jinchiNum==2){
+						url = '/prod/xmaterial/supplement'
+						var jsonarr = []
+						$.each($this.endList, function(i, v) {
+							jsonarr.push({
+								'materialId':v.materialId,
+								'materialModelId':v.id,
+								"quantityDesign": v.quantityDesign,
+								"quantityImpl": v.quantityImpl,
+								"xwbsId": $this.parentId,
+								"xjobId": $this.id,
+								'xprojNumId':'',
+								'sampleTime':$this.jinchiTime
+							})
+						})
+					}
+					DX.ajax_method({
+						'url': url,
+						'type': 'POST',
+						'data': jsonarr,
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle()
+								DX.domParent('vm.getDevice(3)')
+								DX.closeModal()
+							} else {
+								DX.optionTitle(res.msg)
+							}
+						}
+					})
+				},
+				addLs: function() {
+					var $this = this
+					if(this.materialName==''){
+						DX.optionTitle('请输入材料名称')
+						return
+					}
+					this.isend = !this.isend
+					this.endList = [
+						{
+							"model": $this.materialModel,
+							"name":  $this.materialName,
+							"materialUnitId": $("#clSelect option:selected").val(),
+							"materialUnitName": $("#clSelect").find("option:selected").text(),
+							"quantityDesign": '',
+							"quantityImpl": ''
+						}
+					]
+					return
+					// var materialTemparary ={
+					// 	"materialModel": $this.materialModel,
+					// 	"materialName":  $this.materialName,
+					// 	"materialUnitId": $("#clSelect option:selected").val(),
+					// 	"materialUnitName": $("#clSelect").find("option:selected").text()
+					// }
+					// DX.ajax_method({
+					// 	'type':'POST',
+					// 	'url': '/materials/material/saveTemporaryMaterial',
+					// 	'data': materialTemparary,
+					// 	'callBack': function(res) {
+					// 		if (res.code == 200) {
+					// 			$this.addLinshi(res.data.materialModelId)//将临时材料加入拉动式生产
+					// 		} else {
+					// 			DX.optionTitle(res.msg);
+					// 		}
+					// 	}
+					// })
+				},
+				getUnit: function() {
+					var $this = this
+					DX.ajax_method({
+						'url': '/materials/supply/product/findProductUnit',
+						'param': {
+							condition: '',
+							convert: true,
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.unitList = res.data
+							} else {
+								DX.optionTitle(res.msg);
+							}
+						}
+					})
+				},
+				openWz: function() {
+					this.isWz = !this.isWz
+					this.endList = []
+				},
+				getlist: function() { //施工完成
+					var $this = this
+					DX.ajax_method({
+						'url': "/materials/material/findByCondition",
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.list = res.data
+								$this.list.forEach(i => {
+									if (i.children && i.children.length === 0) {
+										if (i.models.length > 0) {
+											$.each(i.models, function(i, v) {
+												v.name = v.model
+											})
+											i.children = i.models
+											i.isParent = true
+										} else {
+											delete i.children;
+											i.isParent = true
+										}
+
+									} else if (i.children) {
+										i.children.forEach(j => {
+											if (j.children && j.children.length ===
+												0) {
+
+												if (j.models.length > 0) {
+													$.each(j.models, function(i, v) {
+														v.name = v.model
+													})
+													j.children = j.models
+													j.isParent = true
+												} else {
+													delete j.children;
+													j.isParent = true
+												}
+
+											} else if (j.children) {
+												j.children.forEach(k => {
+													if (k.children && k
+														.children.length === 0
+													) {
+														if (k.models.length >
+															0) {
+															$.each(k.models,
+																function(
+																	i, v
+																) {
+																	v.name =
+																		v
+																		.model
+																})
+															k.children = k
+																.models
+															k.isParent = true
+														} else {
+															delete k.children;
+															k.isParent = true
+														}
+													}
+												})
+											}
+										})
+									}
+								})
+							} else {
+								DX.optionTitle(res.msg)
+							}
+						}
+					})
+				},
+				getCaiLiao() {
+					var $this = this
+					DX.ajax_method({
+						'url': '/prod/xmaterial/list/by/xjob',
+						'param': {
+							xjobId: $this.id,
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.cailiaoList = res.data
+								$this.idlist = []
+								$.each($this.cailiaoList, function(i, v) {
+									$this.idlist.push(v.scaleId)
+								})
+							} else {
+								DX.optionTitle(res.msg);
+							}
+						}
+					})
+				},
+				add: function() {
+					var $this = this
+					this.isend = !this.isend
+					var arr = this.$refs.tree.getCheckedNodes()
+					var flag = true
+					$.each(arr, function(i, v) {
+						if ($this.idlist.indexOf(v.id) != -1) {
+							DX.optionTitle(v.name + '已存在,请勿重复选择')
+							flag = false
+							return false
+						}
+					})
+					if (!flag) {
+						return
+					}
+					$.each(arr, function(i, v) {
+						v.quantityDesign = ''
+						v.quantityImpl = ''
+					})
+					this.endList = arr
+					return
+				}
+			},
+		})
+	</script>
+</html>

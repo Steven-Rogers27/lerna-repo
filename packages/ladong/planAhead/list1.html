@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../../static/common.css" />
+		<link rel="stylesheet" type="text/css" href="../../static/elementui.css" />
+		<style type="text/css">
+			.trClass {
+				height: 200px;
+			}
+
+			
+
+			.el-table--enable-row-hover .el-table__body tr:hover>td {
+				background-color: transparent;
+			}
+
+			.fFive li {
+				padding: 7px 18px;
+				border-bottom: 1px solid #eee;
+				text-align: center;
+				cursor: pointer;
+				font-size: 14px;
+			}
+
+			.fFive li:hover {
+				/* color: #009688; */
+				background-color: #EDEFF4;
+			}
+
+			#companyIndexPage {
+				/* Chrome all / Safari all /opera15+*/
+				-webkit-user-select: none;
+				/* Firefox all */
+				-moz-user-select: none;
+				/* IE 10+ */
+				-ms-user-select: none;
+				/* 通用 */
+				user-select: none;
+			}
+
+			.xuanfu {
+				background: #303133;
+				color: #FFF;
+			}
+
+			.xuanfu {
+				position: absolute;
+				border-radius: 4px;
+				padding: 10px;
+				z-index: 2000;
+				font-size: 12px;
+				line-height: 1.2;
+				min-width: 10px;
+				word-wrap: break-word;
+				display: none;
+			}
+
+			.trClass .cell {
+				height: 100% !important;
+				line-height: 100%!important;
+			}
+
+			/* .cloClass {
+				background-color: #f2f6fc;
+				border: 1px solid #eaeaea;
+				padding: 2px 10px;
+			} */
+
+			.lastTd {
+				/* border-bottom: none !important; */
+				background-color: #f2f6fc;
+			}
+
+			/* .el-table__row--level-6 .cell {
+				border-top: 1px solid #e4e3e3;
+				margin-top: -1px;
+			} */
+			.mainLine .lastTd .cell {
+				/* 关键线路 */
+				/* border: 1px solid red; */
+				font-weight: bold;
+			}
+
+			/* 	.yellowColor .el-table_1_column_1 {   未开始
+				color: #fca000;
+			}
+
+			.blueColor .el-table_1_column_1 {   进行中
+				color: #1e90ff;
+			}
+
+			.greenColor .el-table_1_column_1 {  已完成
+				color: #1bc088;
+			} */
+			.qizi {
+				width: 11px;
+				height: 16px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="companyIndexPage" style="margin: 20px 0;" v-cloak>
+			<div style="margin-bottom: 10px;display: flex;align-items: flex-end;justify-content: space-between;">
+				<div style="display: flex;color: #949494;">
+					<div style="display: flex;flex-direction: column;border-right: 1px solid #e6e6e6;padding-right: 10px;">
+						<span style="font-weight: bold;color: #333;">施工状态</span>
+						<span style="margin-top: 5px;">
+							<span>未施工:</span>
+							<img class="qizi" src="setting/img/todo.png">
+							<span style="margin-left: 5px;">施工中:</span>
+							<img class="qizi" src="setting/img/doing.png">
+							<span style="margin-left: 5px;">已完成:</span>
+							<img class="qizi" src="setting/img/done.png">
+						</span>
+					</div>
+					<div style="display: flex;flex-direction: column;border-right: 1px solid #e6e6e6;padding-right: 10px;margin-left: 10px;">
+						<span style="font-weight: bold;color: #333;">分级预警(关键线路延迟情况)</span>
+						<span style="margin-top: 5px;">
+							<span>一级（30天）:</span>
+							<img style="width: 15px;" src="setting/img/red.png">
+							<span style="margin-left: 5px;">二级（15天）:</span>
+							<img style="width: 15px;" src="setting/img/yellow.png">
+							<span style="margin-left: 5px;">三级（7天）:</span>
+							<img style="width: 15px;" src="setting/img/blue.png">
+						</span>
+					</div>
+					<div style="display: flex;flex-direction: column;border-right: 1px solid #e6e6e6;padding-right: 10px;margin-left: 10px;">
+						<span style="font-weight: bold;color: #333;">进度预警</span>
+						<span style="margin-top: 5px;">
+							<span>进度提前:</span>
+							<span style="display: inline-block;width: 10px;height: 10px;background-color: #1bc088;"></span>
+							<span style="margin-left: 5px;">非关键线路延迟:</span>
+							<span style="display: inline-block;width: 10px;height: 10px;background-color: #fee703;"></span>
+							<span style="margin-left: 5px;">关键线路延迟:</span>
+							<span style="display: inline-block;width:10px;height:10px;background-color: #f2292a;"></span>
+						</span>
+					</div>
+					<div style="display: flex;flex-direction: column;padding-right: 10px;margin-left: 10px;">
+						<span style="font-weight: bold;color: #333;">预警处置进度</span>
+						<span style="margin-top: 5px;">
+							<span>决策:</span>
+							<span style="display: inline-block;width:14px;height: 15px;border:1px solid #1bc088;border-radius: 50%;line-height:14px;text-align: center;font-size: 12px;">1</span>
+							<span style="margin-left: 5px;">实施:</span>
+							<span style="display: inline-block;width:14px;height: 15px;border:1px solid #1bc088;border-radius: 50%;line-height:14px;text-align: center;font-size: 12px;">2</span>
+							<span style="margin-left: 5px;">反馈:</span>
+							<span style="display: inline-block;width:14px;height:15px;border:1px solid #1bc088;border-radius: 50%;line-height:14px;text-align: center;font-size: 12px;">3</span>
+						</span>
+					</div>
+				</div>
+				<span>
+					<span style="display: inline-block;" class="btnBlue">保存</span>
+					<span style="display: inline-block;" class="btnBlue">刷新</span>
+				</span>
+			</div>
+			<el-table ref="table" :data="treelist" style="width: 100%;margin-bottom: 20px;" key="id" row-key="id" border
+			 :default-expand-all="false" :tree-props="{children: 'children', hasChildren: 'hasChildren'}" :span-method="spanMethod"
+			 :row-class-name="rowClassName" @expand-change="clickTree" empty-text="暂无数据">
+				<el-table-column prop="partName" label="部位" width="250" align="left" header-align="center">
+					<template slot-scope="oobj">
+						<div v-show="oobj.row.level==7 && show" style="display: flex;flex-direction: column;">
+							<div style="display: flex;">
+								<div style="width: 250px;display: flex;align-items: center;justify-content: center;"></div>
+								<div id="vediolist" v-cloak @mousemove="move($event)" @mouseup="up" style="width: 100%;margin-left: 20px;height: 100%;">
+									<p style="margin-bottom: 10px;color: #aaa;">{{partTitle}}工序设置（拖动圆点修改作业时长、右击圆点插入或删除工序）{{ceshi}}</p>
+									<div style="min-width: 100%;">
+										<svg width="100%" height="100" version="1.1" xmlns="http://www.w3.org/2000/svg">
+											<defs>
+												<marker :id="'arrow'+oobj.$index" markerUnits="strokeWidth" markerWidth="10" markerHeight="10" viewBox="0 0 10 10"
+												 refX="6" refY="6" orient="auto">
+													<path d="M2,2 L10,6 L2,10 L6,6 L2,2" style="fill: #c9c9c9;" />
+												</marker>
+											</defs>
+											<defs>
+												<filter :id="'f1' + oobj.$index" x="0" y="0" width="200%" height="200%">
+													<feOffset result="offOut" in="SourceGraphic" dx="3" dy="3" />
+													<feColorMatrix result="matrixOut" in="offOut" type="matrix" values="0.2 0 0 0 0 0 0.2 0 0 0 0 0 0.2 0 0 0 0 0 1 0" />
+													<feGaussianBlur result="blurOut" in="matrixOut" stdDeviation="3" />
+													<feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
+												</filter>
+											</defs>
+											<text v-for="v,i in list" :key="'c'+i" :x="i==0 ? v.xian/2 : list[i-1].xian+((v.xian-list[i-1].xian)/2)" y="15"
+											 style="text-align: center;font-size: 12px;" :width="v.xian+15" fill="#333">{{i==0 ? (v.xian*v.pxTimes).toFixed(1) : ((v.xian-list[i-1].xian)*v.pxTimes).toFixed(1)}}h</text>
+											<line v-for="v,i in list" :key="'i'+i" :x1="i==0 ? 0 : list[i-1].xian" y1="20" :x2="v.xian" y2="20" stroke="#c9c9c9"
+											 stroke-dasharray="20 5" stroke-width="1.5" :marker-end="'url(#arrow' + oobj.$index+')'" />
+											<circle cx="10" cy="20" r="10" fill="#aaa"></circle>
+											<circle v-for="v,i in list" :key="'j'+i" :cx="v.xian+15" cy="20" r="10" @mousedown="down($event,v,i)" :style="{'cursor':i==(list.length-1) ? 'auto' : 'all-scroll'}"
+											 :fill="(i==(list.length-1)) ? '#aaa' : '#1e90ff'">
+											</circle>
+											<rect @click="letWorkShow(v,i)" @mouseenter="mouseEnter($event,v,i)" @mouseleave="mouseLeave" rx="5" ry="5"
+											 v-for="v,i in list" :key="'k'+i" :x="i==0 ? 0+6 : list[i-1].xian+6" :width="(v.xian - (i==0 ? 0 : list[i-1].xian))-5"
+											 height="50" y="30" style="fill:#f2f2f2;stroke-width:2;stroke-opacity:0.9;opacity:0.5;cursor: pointer;"
+											 style="fill:#f2f2f2" :filter="'url(#f1' + oobj.$index+')'"></rect>
+											<!-- :style="{'fill':(i==(list.length-1) || i==0) ? '#f2f2f2' : bgColorStatusArr[list[i-1].colorStatus-1]}" -->
+											<!-- :stroke="(i==(list.length-1) || i==0) ? '#aaa' : colorStatusArr[list[i-1].colorStatus-1]" -->
+											<text @click="openWin(v.id,v.parentId,i,v.name)" v-show="(v.xian - (i==0 ? 0 : list[i-1].xian))>35" v-for="v,i in list"
+											 :key="'a'+i" :x="i==0 ? 8 : list[i-1].xian+8" y="50" style="text-align: center;font-size: 13px;cursor: pointer;"
+											 :width="v.xian+15" fill="#333">{{v.name}}</text>
+											<!-- 28是20+8,20是图片尺寸 -->
+											<!-- <image xlink:href="setting/img/red.png" v-show="(v.xian - (i==0 ? 0 : list[i-1].xian))>35" v-for="v,i in list"
+											 :key="'l'+i" :x="i==0 ? 0+8 : list[i-1].xian+8" y="37" 
+											  fill="#333" height="14" width="15" />   -->
+										</svg>
+									</div>
+								</div>
+							</div>
+							<div v-show="workShow" style="height: 350px;display: flex;align-items: center;justify-content: center;">
+								<img src="setting/img/11.png">
+							</div>
+						</div>
+						<span v-show="oobj.row.level!=7">
+							<span>{{oobj.row.partName}}</span>
+							<img class="qizi" style="vertical-align: middle;margin-left: 5px;" v-if="oobj.row.buildStatus==0" src="./setting/img/todo.png">
+							<img class="qizi" style="vertical-align: middle;margin-left: 5px;" v-else-if="oobj.row.buildStatus==3" src="./setting/img/doing.png">
+							<img class="qizi" style="vertical-align: middle;margin-left: 5px;" v-else src="./setting/img/done.png">
+						</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="计划开始时间" width="140">
+					<template slot-scope="obj" >
+						<span @click="openUglyModal(1,obj.row.startTime)">{{obj.row.startTime}}</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="计划结束时间" width="140">
+					<template slot-scope="obj" >
+						<span @click="openUglyModal(2,obj.row.endTime)">{{obj.row.endTime}}</span>
+					</template>
+				</el-table-column>
+				<el-table-column prop="gongqi" label="工期(天)" width="60">
+				</el-table-column>
+				<el-table-column prop="" label="部位编号" width="60">
+					<template slot-scope="obj" >
+						<span>{{obj.$index}}</span>
+					</template>
+				</el-table-column>
+				<el-table-column prop="" label="紧前部位" width="60">
+				</el-table-column>
+				<el-table-column prop="" label="紧后部位" width="60">
+				</el-table-column>
+				<el-table-column prop="" label="形象进度" width="60">
+					<template slot-scope="obj" v-if="obj.row.level>=4">
+						<span>3/10(个)</span>
+					</template>
+				</el-table-column>
+				<el-table-column prop="" label="预警" width="60">
+					<template slot-scope="obj">
+						<img v-if="obj.row.warnLevel==3" src="setting/img/red.png" width="15px" style="cursor: pointer;" @click="goWarn">
+						<img v-else-if="obj.row.warnLevel==2" src="setting/img/yellow.png" width="15px" style="cursor: pointer;" @click="goWarn">
+						<img v-else-if="obj.row.warnLevel==1" src="setting/img/blue.png" width="15px" style="cursor: pointer;"  @click="goWarn">
+					</template>
+				</el-table-column>
+				<el-table-column prop="partName" label="预测时间/实际时间" min-width="70%" align="left" header-align="center" class-name="lastTd">
+					<template slot-scope="obj">
+						<!-- <span class="cloClass" :style="{'margin-left':maLeftArr[obj.row.level]}">    首行缩进 -->
+						<span v-if="obj.row.sjStartTime!=''">
+							<span style="color: #949494;font-size: 13px;margin-left: 10px;">实际开始时间：{{obj.row.sjStartTime}} </span>
+							<span style="color: #949494;font-size: 13px;margin-left: 10px;">实际结束时间：{{obj.row.sjEndTime}}</span>
+						</span>
+						<span v-else>
+							<span style="color: #949494;font-size: 13px;margin-left: 10px;" v-if="obj.row.expectStartTime==''">暂无预测时间</span>
+							<span v-else>
+								<span style="color: #949494;font-size: 13px;margin-left: 10px;">预测开始时间：{{obj.row.expectStartTime}}</span>
+								<span style="color: #949494;font-size: 13px;margin-left: 10px;">预测结束时间：{{obj.row.expectEndTime}}</span>
+							</span>
+						</span>
+						<span style="color: #949494;font-size: 13px;">（延迟天数：{{obj.row.delayDays}}）</span>
+					</template>
+				</el-table-column>
+			</el-table>
+			<ul class="fFive" style='position: absolute;display: inline-block;background: #fff;border-radius: 2px;border: 1px solid #eee;color: #333;box-shadow: 0 0 9px #e6e1e1;z-index:500;display: none;font-size: 12px;'>
+				<!-- <li>编辑工作</li> -->
+				<li @click="addWork(1)">插入工作</li>
+				<!-- <li @click="addWork(2)">后方增加工作</li> -->
+				<li @click="delWork">删除工作</li>
+			</ul>
+			<div class="xuanfu" :style="{'left':enterVal.xian}" style="top: 50;">
+				<p>计划开始时间：{{xuanfu.startTime}}</p>
+				<p>计划结束时间：{{xuanfu.endTime}}</p>
+				<p>施工预测时间：</p>
+				<p>施工实际时间：</p>
+			</div>
+			<div onclick="fFivehideBack()" id="fFivebackGound" style="width:100%;height:100%;background-color:transparent;position:fixed;display:none;top:0;left:0"></div>
+			<el-dialog
+			  :title="timeText"
+			  :visible.sync="dialogVisible"
+			  width="425px"
+			  :before-close="handleClose">
+				<el-date-picker style="margin-left: 30px" value-format="yyyy-MM-dd HH:mm:ss" @change="saveTime()" v-model="updateTime" align="right" type="datetime" placeholder="选择计划开始时间" ></el-date-picker>
+			  <span slot="footer" class="dialog-footer">
+			    <el-button @click="dialogVisible = false">取 消</el-button>
+			    <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+			  </span>
+			</el-dialog>
+		</div>
+	</body>
+	<script src="../../static/js/jquery-1.8.3.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../static/js/vue.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../static/js/elementui.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../static/dx.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		document.oncontextmenu = function() {
+			return false;
+		}
+		var vm = new Vue({
+			el: '#companyIndexPage',
+			data: function() {
+				return {
+					treelist: [],
+					flag: false, //用来判断鼠标是不是点击在圆圈上
+					list: [],
+					val: 0,
+					index: 0, //现在点击的将要移动的圆球的index
+					aa: "-10,-10,100,200",
+					partTitle: '', //弹窗内的标题
+					delWorkObj: '', //正在操作的工序对象
+					afterIdIndex: 0,
+					nowPartId: '', //现在的部位id 六级
+					xuanfu: {
+						startTime: '2020-10-15',
+						endTime: '2020-10-15',
+					},
+					enterVal: '', //鼠标悬浮的val
+					ceshi: '',
+					maLeftArr: ['', '10px', '20px', '38px', '54px', '71px', '87px'],
+					show: false,
+					// colorStatusArr: ['#fca000', '#1e90ff', '#1bc088'],
+					colorStatusArr: ['#1e90ff', '#1e90ff', '#1e90ff'],
+					bgColorStatusArr: ['#fff5e5', '#e8f4ff', '#e8f9f3'],
+					bgColorStatusArr: ['#f2f2f2', '#f2f2f2', '#f2f2f2'],
+					workShow: false,
+					workShowIndex: 0,
+					dialogVisible: false,
+					timeText:"修改计划开始时间",
+					updateTime:"",
+					updateType: 1,
+				}
+			},
+			mounted: function() {
+				this.getTreeLists()
+			},
+			methods: {
+<<<<<<< .mine
+				openUglyModal:function(type,time){
+					this.updateType = type;
+					this.updateTime = time;
+					if(type == 1){
+						this.timeText = "修改计划开始时间";
+					}else{
+						this.timeText = "修改计划结束时间";
+					}
+					this.dialogVisible = true;
+				},
+				 handleClose(done) {
+				        this.$confirm('确认关闭？')
+				          .then(_ => {
+							  
+				          })
+				          .catch(_ => {});
+				      },
+					  saveTime:function(){
+						  
+					  },
+||||||| .r1196
+=======
+				goWarn:function(){
+					DX.open('./setting/warn.html',{
+						width:550,
+						height:600,
+						title:'预警处置'
+					})
+				},
+>>>>>>> .r1197
+				letWorkShow: function(val, index) {
+					if (index == this.workShowIndex) {
+						this.workShow = !this.workShow
+					} else {
+						this.workShow = true
+					}
+					this.workShowIndex = index
+				},
+				getTreeLists: function() { //-CN获取服务器数据(五级树)
+					var that = this;
+					DX.ajax_method({
+						'type': 'GET',
+						'param': {
+							'maxLevel': 7
+						},
+						'url': '/prod/xact/list',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								that.treelist = res.data == "" ? [] : res.data;
+								if (res.data != "") {
+									that.readNodes(that.treelist)
+								}
+							}
+						},
+					});
+				},
+				readNodes: function(nodes = []) {
+					var that = this
+					for (let item of nodes) {
+						var sDate1 = new Date(item.startTime).getTime();
+						var sDate2 = new Date(item.endTime).getTime();
+						var dateSpan = sDate2 - sDate1;
+						dateSpan = Math.abs(dateSpan);
+						item.gongqi = Math.floor(dateSpan / (24 * 3600 * 1000));
+						if (item.level == 6) {
+							item.children = [{
+								level: 7,
+								id: item.children[0].id,
+								show: false
+							}]
+						}
+						that.readNodes(item.children)
+					}
+				},
+				spanMethod: function(row) {
+					if (row.row.level == 7 && row.columnIndex == 0) {
+						return {
+							rowspan: 1,
+							colspan: 10
+						}
+					}
+				},
+				rowClassName: function(row) {
+					var str = ""
+					// if(row.row.warnLevel==0){
+					// 	str += 'yellowColor '
+					// }else if(row.row.warnLevel==3){
+					// 	str +=  'greenColor '
+					// }else{
+					// 	str +=  'blueColor '
+					// }
+					if (row.row.mainLine == 0) {
+						str += 'mainLine '
+					}
+					if (row.row.level == 7) {
+						str += "trClass "
+					}
+					return str
+				},
+				digui: function(nodes = [], row, resData) {
+					var that = this
+					var lengthS = $('thead').width() - 50 - 250
+					var startTimeS //第一个开始时间
+					var endTimeS //最后一个结束时间
+					var msS //第一个开始时间到最后一个结束时间时间差
+					for (let item of nodes) {
+						if (item.level == 6 && item.id == row.id) {
+							item.children[0].show = false
+							item.children[0].partTitle = row.partName
+							item.children[0].nowPartId = row.partid
+							item.children[0].list = []
+							var num = (lengthS / resData.length).toFixed(0) //没时间的时候，整体800，除以一格多少像素。
+							var haveTime = 100
+							var noTime = 100
+							var haveTimeFlag = true //有时间
+							if (resData[0].startTime == '') {
+								haveTimeFlag = false //无时间
+							} else { //有时间
+								startTimeS = new Date(resData[0].startTime.replace(/-/g, '/'));
+								endTimeS = new Date(resData[resData.length - 1].endTime.replace(/-/g, '/'));
+								msS = Math.abs(endTimeS.getTime() - startTimeS.getTime());
+							}
+							var allLength = 0
+							$.each(resData, function(i, val) {
+								noTime = (i + 1) * num;
+								s1 = new Date(val.startTime.replace(/-/g, '/'));
+								s2 = new Date(val.endTime.replace(/-/g, '/'));
+								var ms = Math.abs(s1.getTime() - s2.getTime());
+								haveTime = (ms / (msS / lengthS)).toFixed(0) //(msS/lengthS)==	1px代表多少时间
+								// haveTime = (ms / 1000 / 60 / 60 * 2 * 50).toFixed(0); //相距几个0.5小时，再乘以50就是距离
+								allLength += Number(haveTime)
+								item.children[0].list.push({
+									name: val.partName,
+									xian: haveTimeFlag ? allLength : noTime,
+									startTime: val.startTime,
+									endTime: val.endTime,
+									id: val.id,
+									parentId: val.parentId,
+									pxTimes: msS / lengthS / 1000 / 60 / 60, //1px代表多少小时
+									// status:i%3==1 ? 0 : 1   //自己定义，两个状态，1：进行中，2：已完成
+									colorStatus: Math.floor(Math.random() * (4 - 1) + 1)
+								})
+							})
+							item.children[0].show = true
+						}
+						that.digui(item.children, row, resData)
+					}
+					// that.$forceUpdate()
+				},
+				clickTree: function(row, expanded) {
+					if (expanded) {
+						if (row.level == 6) { //弹出工序抽屉，(事前计划)
+							var $this = this
+							vm.partTitle = row.partName
+							vm.nowPartId = row.partid
+							var lengthS = $('thead').width() - 50 - 250
+							var startTimeS //第一个开始时间
+							var endTimeS //最后一个结束时间
+							var msS //第一个开始时间到最后一个结束时间时间差
+							DX.ajax_method({
+								'param': {
+									'parentId': row.partid,
+									'level': 7
+								},
+								'url': '/prod/xact/list/byLevel',
+								'callBack': function(res) {
+									if (res.code == 200) {
+										if (res.data != "") {
+											vm.show = false
+											vm.partTitle = row.partName
+											vm.nowPartId = row.partid
+											vm.list = []
+											var num = (lengthS / res.data.length).toFixed(0) //没时间的时候，整体800，除以一格多少像素。
+											var haveTime = 100
+											var noTime = 100
+											var haveTimeFlag = true //有时间
+											if (res.data[0].startTime == '') {
+												haveTimeFlag = false //无时间
+											} else { //有时间
+												startTimeS = new Date(res.data[0].startTime.replace(/-/g, '/'));
+												endTimeS = new Date(res.data[res.data.length - 1].endTime.replace(/-/g, '/'));
+												msS = Math.abs(endTimeS.getTime() - startTimeS.getTime());
+											}
+											var allLength = 0
+											$.each(res.data, function(i, val) {
+												noTime = (i + 1) * num;
+												s1 = new Date(val.startTime.replace(/-/g, '/'));
+												s2 = new Date(val.endTime.replace(/-/g, '/'));
+												var ms = Math.abs(s1.getTime() - s2.getTime());
+												haveTime = (ms / (msS / lengthS)).toFixed(0) //(msS/lengthS)==	1px代表多少时间
+												// haveTime = (ms / 1000 / 60 / 60 * 2 * 50).toFixed(0); //相距几个0.5小时，再乘以50就是距离
+												allLength += Number(haveTime)
+												vm.list.push({
+													name: val.partName,
+													xian: haveTimeFlag ? allLength : noTime,
+													startTime: val.startTime,
+													endTime: val.endTime,
+													id: val.id,
+													parentId: val.parentId,
+													pxTimes: msS / lengthS / 1000 / 60 / 60, //1px代表多少小时
+													// status:i%3==1 ? 0 : 1   //自己定义，两个状态，1：进行中，2：已完成
+													colorStatus: Math.floor(Math.random() * (4 - 1) + 1)
+												})
+											})
+											vm.show = true
+										}
+									}
+								}
+							});
+							$this.accordion($this.treelist, row)
+						}
+					}
+				},
+				accordion: function(nodes = [], row) {
+					var that = this
+					let $table = this.$refs.table;
+					$.each(nodes, function(i, item) {
+						if (item.level == 6) {
+							if (row.id !== item.id) {
+								$table.toggleRowExpansion(item, false);
+							}
+						}
+						that.accordion(item.children, row)
+					})
+				},
+				down: function(e, v, i) {
+					if (e.which == 3) { //右键操作
+						$('#fFivebackGound').show()
+						$('.fFive').css({
+							top: e.pageY,
+							left: e.clientX
+						}).show();
+						this.delWorkObj = v
+						this.afterIdIndex = i + 1
+					} else {
+						this.val = v
+						this.index = i
+						if (i == (this.list.length - 1)) { //最后一个圆圈，不能拖
+							return
+						}
+						// else if(this.list[i].status==2 || this.list[i+1].status==2){   	//若某工序状态为已完成，则不能拖动左右圆圈。 也就是一个工序下一个或上一个工序状态是已完成的话就不能拖动。
+						// 	DX.optionTitle('该节点不可拖拽')
+						// 	return
+						// }else if(this.list[i+1].status==1){  //若某工序任务为进行中，则不可拖其左侧圆圈。即若当前工序的下一个为进行中，则当前节点不可拖动。
+						// 	DX.optionTitle('该节点不可拖拽')
+						// 	return
+						// }
+						this.flag = true
+					}
+				},
+				move: function(e) {
+					if (this.flag == true) { //↓↓↓↓先判断是不是左起第二个圆圈，也就是index==0的圆圈
+						if (e.clientX - 248 <= (this.index == 0 ? (0.5 / this.val.pxTimes) : (this.list[this.index - 1].xian + (0.5 /
+								this.val.pxTimes)))) { //圆圈拖动不能超过前一个圆圈,且最小距离0.5小时。
+							this.val.xian = (this.index == 0 ? (0.5 / this.val.pxTimes) : this.list[this.index - 1].xian + (0.5 / this.val
+								.pxTimes))
+						} else if (e.clientX - 248 >= (this.list[this.index + 1].xian - (0.5 / this.val.pxTimes))) { //圆圈拖动不能超过后一个圆圈，且最小距离0.5小时。
+							this.val.xian = this.list[this.index + 1].xian - (0.5 / this.val.pxTimes)
+						} else {
+							// this.val.xian = e.clientX + $('thead').scrollLeft() - 248 //当前鼠标位置加上滚动条距离
+							// this.val.xian = Math.floor((e.clientX - 248 - this.list[this.index-1].xian)/50)*50 + this.list[this.index-1].xian   //步进0.5小时
+							this.val.xian = e.clientX - 248 //当前鼠标位置加上滚动条距离
+						}
+					}
+				},
+				up: function(e) {
+					var $this = this
+					if (this.flag == false) {
+						return
+					}
+					if (this.flag && $this.list[0].startTime == '') {
+						$this.$message('暂无计划时间，修改无效');
+						this.flag = false
+						return
+					}
+					this.flag = false
+					var timeWidth = (this.val.xian - (this.index == 0 ? 0 : $this.list[this.index - 1].xian)) //当前长度
+					var newTime = (new Date(this.val.startTime)).getTime();
+					newTime += 3600 * 1000 * 24 * (timeWidth * this.val.pxTimes / 24) //新时间等于开始时间加上历时长度
+					newTime = this.format(newTime) //新结束时间
+					DX.ajax_method({
+						'type': 'POST',
+						'url': '/prod/xact/xjob/modify/time/plan/by/point',
+						'param': {
+							'time': newTime,
+							'leftId': $this.list[$this.index].id,
+							'rightId': $this.list.length - 1 == $this.index ? '' : $this.list[$this.index + 1].id,
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.$message({
+									message: '修改成功',
+									type: 'success'
+								});
+								$this.getGongxu()
+							} else {
+								$this.$message.error(res.msg);
+							}
+						}
+					})
+				},
+				add0: function(m) {
+					return m < 10 ? '0' + m : m
+				},
+				format: function(shijianchuo) {
+					//shijianchuo是整数，否则要parseInt转换  
+					var time = new Date(shijianchuo);
+					var y = time.getFullYear();
+					var m = time.getMonth() + 1;
+					var d = time.getDate();
+					var h = time.getHours();
+					var mm = time.getMinutes();
+					var s = time.getSeconds();
+					return y + '-' + this.add0(m) + '-' + this.add0(d) + ' ' + this.add0(h) + ':' + this.add0(mm) + ':' + this.add0(
+						s);
+				},
+				mouseEnter: function(e, v, i) { //矩形rect的鼠标移入
+					$('.xuanfu').css({
+						left: e.clientX + 20,
+						top: e.pageY
+					}).show();
+					this.enterVal = v
+					this.xuanfu.startTime = v.startTime
+					this.xuanfu.endTime = v.endTime
+				},
+				mouseLeave: function() { //矩形rect的鼠标移出
+					$('.xuanfu').hide()
+				},
+				rectDown: function(e, v, i) { //点击矩形
+					// if (e.which == 3) { //右键操作
+					$('#fFivebackGound').show()
+					$('.fFive').css({
+						top: e.pageY,
+						left: e.clientX
+					}).show();
+					this.delWorkObj = v
+					this.afterIdIndex = i + 1
+					// }
+				},
+				openWin: function(id, parentId, i, partName) { //打开配置弹窗
+
+					DX.open("setting/setting.html?id=" + id + '&parentId=' + parentId + '&index=' + i,
+						partName,
+						true)
+				},
+				delWork: function() {
+					var $this = this
+					DX.ajax_method({
+						'url': '/prod/xact/delete/by/id',
+						'type': 'POST',
+						'param': {
+							id: this.delWorkObj.id,
+							afterId: $this.list[$this.afterIdIndex].id
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.getGongxu()
+								$this.$message({
+									message: '操作成功',
+									type: 'success'
+								});
+								fFivehideBack()
+							} else {
+								$this.$message.error(res.msg);
+							}
+						}
+					})
+				},
+				getGongxu: function() {
+					var $this = this
+					var lengthS = $('thead').width() - 50 - 250
+					var startTimeS //第一个开始时间
+					var endTimeS //最后一个结束时间
+					var msS //第一个开始时间到最后一个结束时间时间差
+					DX.ajax_method({
+						'param': {
+							'parentId': $this.nowPartId,
+							'level': 7
+						},
+						'url': '/prod/xact/list/byLevel',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								if (res.data != "") {
+									vm.list = []
+									var num = (lengthS / res.data.length).toFixed(0) //没时间的时候，整体800，除以一格多少像素。
+									var haveTime = 100
+									var noTime = 100
+									var haveTimeFlag = true //有时间
+									if (res.data[0].startTime == '') {
+										haveTimeFlag = false //无时间
+									} else { //有时间
+										startTimeS = new Date(res.data[0].startTime.replace(/-/g, '/'));
+										endTimeS = new Date(res.data[res.data.length - 1].endTime.replace(/-/g, '/'));
+										msS = Math.abs(endTimeS.getTime() - startTimeS.getTime());
+									}
+									var allLength = 0
+									$.each(res.data, function(i, val) {
+										noTime = (i + 1) * num;
+										s1 = new Date(val.startTime.replace(/-/g, '/'));
+										s2 = new Date(val.endTime.replace(/-/g, '/'));
+										var ms = Math.abs(s1.getTime() - s2.getTime());
+										haveTime = (ms / (msS / lengthS)).toFixed(0) //(msS/lengthS)==	1px代表多少时间
+										// haveTime = (ms / 1000 / 60 / 60 * 2 * 50).toFixed(0); //相距几个0.5小时，再乘以50就是距离
+										allLength += Number(haveTime)
+										vm.list.push({
+											name: val.partName,
+											xian: haveTimeFlag ? allLength : noTime,
+											startTime: val.startTime,
+											endTime: val.endTime,
+											id: val.id,
+											parentId: val.parentId,
+											pxTimes: msS / lengthS / 1000 / 60 / 60, //1px代表多少小时
+											// status:i%3==1 ? 0 : 1   //自己定义，两个状态，1：进行中，2：已完成
+											colorStatus: Math.floor(Math.random() * (4 - 1) + 1)
+										})
+									})
+								}
+							}
+						}
+					});
+				},
+				addWork: function(num) { //$this.afterIdIndex是当前点击的矩形的index+1,num==1，前方增加，前方增加的话就传当前点击的id,后方增加传当前点击的下一个的id
+					var $this = this
+					var xjobId = num == 1 ? $this.list[$this.afterIdIndex].id : $this.list[$this.afterIdIndex + 1].id
+					this.$prompt('请填写工序名称', '提示', {
+						confirmButtonText: '确定',
+						cancelButtonText: '取消',
+					}).then(({
+						value
+					}) => {
+						DX.ajax_method({
+							'url': '/prod/xjob/add',
+							'type': 'POST',
+							'data': {
+								id: xjobId,
+								parentId: $this.nowPartId,
+								name: value,
+								obsGroup: "",
+								orderNumber: '', //num=1前方增加
+								projNumDtos: [],
+								split: 0,
+								tbsGroup: '',
+							},
+							'callBack': function(res) {
+								if (res.code == 200) {
+									$this.getGongxu()
+									$this.$message({
+										message: '操作成功',
+										type: 'success'
+									});
+									fFivehideBack()
+								} else {
+									$this.$message.error(res.msg);
+								}
+							}
+						})
+					}).catch(() => {
+						this.$message({
+							type: 'info',
+							message: '取消输入'
+						});
+					});
+				},
+				updateTime1:function(){
+					
+				}
+			},
+			watch: {},
+		})
+
+		function fFivehideBack() {
+			$('#fFivebackGound').hide()
+			$('.fFive').hide()
+		}
+	</script>
+</html>

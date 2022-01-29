@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../../../static/common.css" />
+		<link rel="stylesheet" type="text/css" href="../../../static/elementui.css" />
+		<style type="text/css">
+
+		</style>
+	</head>
+	<body>
+		<div id="constructionPage" v-cloak>
+			<div style="padding: 15px 25px;height: calc(100% - 55px);">
+				<textarea rows="" cols="" class="textarea" v-model="content" style="width: 100%;height: 100px;">
+					
+				</textarea>
+			</div>
+			<div style="display: flex;justify-content: center;width: 100%;">
+				<span class="btnBlue" @click="add">保存</span>
+			</div>
+		</div>
+	</body>
+	<script src="../../../static/js/jquery-1.8.3.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/vue.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/elementui.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/dx.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		var vm = new Vue({
+			el: '#constructionPage',
+			data: {
+				id:'',
+				parentId:'',
+				content:''
+			},
+			mounted: function() {
+				this.id = DX.getParam('id')
+				this.parentId = DX.getParam('parentId')
+			},
+			methods: {
+				add:function(){ //施工完成
+					var $this = this
+					DX.ajax_method({
+						'type': "POST",
+						'data':{
+							"content": $this.content,
+							"parentId": $this.parentId,
+							"xjobId": $this.id
+						},
+						'url': "/prod/data/collect/add/item/memo",
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle()
+								DX.domParent('vm.getDevice(1)')
+								DX.closeModal()
+							} else {
+								DX.optionTitle(res.msg)
+							}
+						}
+					})
+				},
+				
+				
+			},
+		})
+	</script>
+</html>

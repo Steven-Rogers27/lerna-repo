@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../../../static/common.css" />
+		<link rel="stylesheet" type="text/css" href="../../../static/elementui.css" />
+		<link rel="stylesheet" href="../../../static/ztree/zTreeStyle.css" />
+		<style type="text/css">
+			#companyIndexPage {
+				padding: 20px 0;
+				display: flex;
+			}
+
+			.left {
+				width: 70%;
+				border: 1px solid #ECECEC;
+				border-top: none;
+			}
+
+			.right {
+				width: 30%;
+				margin-left: -1px;
+			}
+
+			.el-tabs__nav-wrap::after {
+				height: 1px;
+			}
+
+			.el-tabs__content {
+				padding: 0 10px;
+			}
+
+			body {
+				margin: 0;
+				color: #333;
+				background-color: #fff;
+			}
+
+			.hide {
+				display: none;
+			}
+
+			#backGound {
+				z-index: 9;
+			}
+
+			.el-date-editor .el-range__icon {
+				display: flex;
+				align-items: center;
+			}
+
+			.el-date-editor .el-range-separator {
+				display: flex;
+				align-items: center;
+			}
+
+			.el-date-editor .el-range__close-icon {
+				display: flex;
+				align-items: center;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="companyIndexPage" v-cloak>
+			<div class="left" style="height: 90vh;">
+				<el-tabs v-model="activeNameLeft" type="card" @tab-click="handleClickLeft">
+					<el-tab-pane label="时间、工程量" name="one">
+						<p style="font-weight: bold;margin: 10px 0;display: flex;justify-content: space-between;align-items: center;">
+							<span>施工时间<span style="color: #aaa;font-size: 13px;font-weight: 400;margin-left: 10px;">(修改该工序时间会影响前后工序的时间)</span>
+							</span>
+							<span class="btnBlue" style="display: inline-block;" @click="updateTime">保存</span>
+						</p>
+						<div style="color: #797979;">
+							<el-date-picker v-model="twoTime" type="datetimerange" range-separator="至" start-placeholder="开始日期"
+							 end-placeholder="结束日期" @change="getGongshi">
+							</el-date-picker>
+						</div>
+						<div style="color: #797979;margin-top: 10px;">
+							<span>
+								<span>作业工时：</span>
+								<span v-if="allList.startTime==''">无</span>
+								<span v-else >{{workTime}}（小时）</span>
+							</span>
+						</div>
+						<div style="color: #797979;margin-top: 10px;">
+							<span>
+								<span>预测时间：</span>
+								<span>{{allList.expectStartTime}}-{{allList.expectEndTime}}</span>
+							</span>
+						</div>
+						<div style="color: #797979;margin-top: 10px;">
+							<span>
+								<span>实际时间：</span>
+								<span>{{allList.sjStartTime}}-{{allList.sjEndTime}}</span>
+							</span>
+						</div>
+						<p style="border-top: 1px solid #eee;margin: 10px -10px;"></p>
+						<p style="font-weight: bold;margin: 10px 0;display: flex;justify-content: space-between;align-items: center;">
+							<span>工程量</span>
+							<span style="display: inline-block;color: #1e90ff;font-weight: 400;cursor: pointer;" @click="gofluxCalc">计算工程数量</span>
+						</p>
+						<table class="table tableHover mt20 " id="table" style="table-layout: fixed;">
+							<thead>
+								<tr>
+									<th style="width: 60px;"></th>
+									<th>数量名称</th>
+									<th>单位</th>
+									<th>计算量</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>计划量</td>
+									<td>{{GongList.jobName}}</td>
+									<td>{{GongList.unit}}</td>
+									<td>{{GongList.amount}}</td>
+								</tr>
+								<tr>
+									<td>实际量</td>
+									<td></td>
+									<td></td>
+									<td></td>
+								</tr>
+								<tr>
+									<td>预测量</td>
+									<td></td>
+									<td></td>
+									<td></td>
+								</tr>
+							</tbody>
+						</table>
+					</el-tab-pane>
+					<el-tab-pane label="管理、作业人员" name="two">
+						<p style="font-weight: bold;margin: 10px 0;display: flex;justify-content: space-between;align-items: center;">
+							<span>管理人员</span>
+							<span style="display: inline-block;color: #1e90ff;font-weight: 400;cursor: pointer;" @click="addObs">添加责任人</span>
+						</p>
+						<div v-for="v,i in obsList" :key="i" style="padding: 10px;display: flex;align-items: center;justify-content: space-between;"
+						 :style="{'border-bottom':i==obsList.length-1 ? 'none' : '1px solid #E6E6E6'}">
+							<span>
+								<span>{{v.name}}</span>
+								<span>{{v.departName}}</span>
+								<span>{{v.jobName}}</span>
+								<span>{{v.phone}}</span>
+							</span>
+							<img v-show="v.delRed==true" @mouseenter="delRedEnter(v)" style="width: 18px;height: 18px;cursor: pointer;" src="./img/delQian.png">
+							<img v-show="v.delRed==false" @click="delObs(v)" @mouseleave="delRedLeave(v)" style="width: 18px;height: 18px;cursor: pointer;"
+							 src="./img/delShen.png">
+						</div>
+						<p style="border-top: 1px solid #eee;margin: 10px -10px;"></p>
+						<p style="font-weight: bold;margin: 10px 0;display: flex;justify-content: space-between;align-items: center;">
+							<span>作业队伍</span>
+							<span style="display: inline-block;color: #1e90ff;font-weight: 400;cursor: pointer;" @click="addTbs">添加队伍</span>
+						</p>
+						<div v-for="v,i in tbsList" :key="i +'a'" style="padding: 10px;display: flex;align-items: center;justify-content: space-between;"
+						 :style="{'border-bottom':i==obsList.length-1 ? 'none' : '1px solid #E6E6E6'}">
+							<span>
+								<span>{{v.builderName}}</span>
+								<span>({{v.builderPrincipal}})</span>
+							</span>
+							<img v-show="v.delRed==true" @mouseenter="delRedEnter(v)" style="width: 18px;height: 18px;cursor: pointer;" src="./img/delQian.png">
+							<img v-show="v.delRed==false" @click="delTbs(v)" @mouseleave="delRedLeave(v)" style="width: 18px;height: 18px;cursor: pointer;"
+							 src="./img/delShen.png">
+						</div>
+					</el-tab-pane>
+					<el-tab-pane label="人力、材料、设备" name="three">
+						<p style="display: flex;justify-content: space-between;">
+							<span style="color: #797979;">用工数量：</span>
+							<span style="color: #1e90ff;cursor: pointer;" @click="addTbs">添加</span>
+						</p>
+						<div style="max-height: 200px;overflow-y: scroll;padding: 5px;">
+							<div style="background-color: #f2f2f2;padding: 6px;margin-top: 6px;" v-for="val,inx in yonggongList" :key="inx+'a'">
+								<div style="display: flex;justify-content: space-between;">
+									<span>
+										<span>作业队伍：</span>
+										<span>{{val.teamName}}
+											<span>({{val.contactsName}} {{val.contactsPhone}})</span>
+										</span>
+									</span>
+									<img v-show="!val.delEnter" @mouseenter="changeDel(inx,1)" style="width: 12px;height: 13px;" src="./img/delBlack.png">
+									<img @click="delYongGong(val)" v-show="val.delEnter" @mouseleave="changeDel(inx,2)" style="width: 12px;height: 13px;cursor: pointer;" src="./img/delRed.png">
+								</div>
+								<div style="display: flex;justify-content: space-between;" class="mt10">
+									<span>
+										<span>施工人数：</span>
+										<input class="input" @blur="modYongGong(val)" v-model="val.quantity" placeholder="参与施工人数" />
+									</span>
+								</div>
+							</div>
+						</div>
+						<div style="border-top: 1px solid #f2f2f2;margin-top: 10px;"></div>
+						<p style="display: flex;justify-content: space-between;margin-top: 10px;margin-bottom: 10px;">
+							<span style="color: #797979;">材料：</span>
+							<span style="color: #1e90ff;cursor: pointer;" @click="gofluxCalc">计算材料数量</span>
+						</p>
+						<el-table :data="cailiaoList" max-height="250" border style="width: 100%">
+							<el-table-column prop="materialName" label="材料名称" min-width="30%">
+							</el-table-column>
+							<el-table-column prop="modelName" label="规格型号" min-width="30%">
+							</el-table-column>
+							<el-table-column prop="unit" label="单位" min-width="20%">
+							</el-table-column>
+							<el-table-column prop="amount" label="计算量" min-width="20%">
+							</el-table-column>
+						</el-table>
+						<div style="border-top: 1px solid #f2f2f2;margin-top: 10px;"></div>
+						<p style="display: flex;justify-content: space-between;margin-top: 10px;margin-bottom: 10px;">
+							<span style="color: #797979;">机械：</span>
+							<span style="color: #1e90ff;cursor: pointer;" @click="goDevicce">添加设备</span>
+						</p>
+						<el-table :data="deviceList" height="calc(100vh - 709px)" border style="width: 100%">
+							<el-table-column prop="deviceName" label="设备名称" min-width="30%">
+							</el-table-column>
+							<el-table-column prop="deviceType" label="规格型号" min-width="20%">
+							</el-table-column>
+							<el-table-column prop="" label="单位" min-width="20%">
+								<template slot-scope="obj">
+									<span >台</span>
+								</template>
+							</el-table-column>
+							<el-table-column prop="" label="数量" min-width="20%">
+								<template slot-scope="obj">
+									<input type="" class="tableEdit" value="" style="width: 100%;height: 100%;outline: none;border: none;text-align: center;" v-model="obj.row.quantityPlan" @blur="inputBlur(obj.row)" />
+								</template>
+							</el-table-column>
+							<el-table-column prop="" label="操作" min-width="20%">
+								<template slot-scope="obj">
+									<span class="listToDetail" @click="delDevice(obj.row)">删除</span>
+								</template>
+							</el-table-column>
+						</el-table>
+					</el-tab-pane>
+				</el-tabs>
+			</div>
+			<div class="right" style="height: 90vh;border: 1px solid #ECECEC;border-top: none;border-left: none;">
+				<el-tabs v-model="activeNameRight" type="card" @tab-click="handleClickRight">
+					<el-tab-pane label="待办事项" name="one">
+						<p style="margin-bottom: 5px;">
+							<span style="color:#1e90ff;">【提醒】</span>
+							<span>2020/10/9计划滞后</span>
+						</p>
+						<p style="margin-bottom: 5px;">
+							<span style="color:#ff9999;">【计划】</span>
+							<span>2020/10/9计划滞后</span>
+						</p>
+					</el-tab-pane>
+					<el-tab-pane label="工作流程" name="two">工作流程</el-tab-pane>
+				</el-tabs>
+			</div>
+			<modal :param="param4" :class="{hide:hide4}" @close="closeModal()">
+				<div style="padding: 15px 25px;height: calc(100% - 55px);overflow: auto;">
+					<div style="display: flex;overflow: auto;height: 510px;">
+						<div class="ztree" id="addPeopleTree"></div>
+					</div>
+					<p style="text-align: center;margin-top: 10px;">
+						<button class="btnBlue" @click="saveAddPeople">保存</button>
+					</p>
+				</div>
+			</modal>
+		</div>
+	</body>
+	<script src="../../../static/js/jquery-1.8.3.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/vue.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/elementui.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/dx.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript" src="../../../static/ztree/jquery.ztree.all.min.js"></script>
+	<script src="../../../static/js/component.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		var vm = new Vue({
+			el: '#companyIndexPage',
+			data: function() {
+				return {
+					activeNameLeft: 'one',
+					activeNameRight: 'one',
+					delEnter: true, //鼠标移入后删除键变色
+					delRed: true, //删除人
+					id: '', //工序的id
+					//第一栏，修改计划时间。
+					planStartTimeDate: '',
+					planEndTimeDate: '',
+					planStartTimeHour: '',
+					planEndTimeHour: '',
+					workTime: '', //作业工时
+					parentId: '',
+					obsList: [],
+					tbsList: [],
+
+					param4: {
+						width: 500,
+						height: 650,
+						title: "添加责任人",
+					},
+					hide4: true,
+					list: [], //点部位下所有工序list
+					twoTime: [new Date(), new Date()],
+					cailiaoList: [], //材料组
+					GongList: {
+						jobName: '',
+						unit: '',
+						amount: '',
+					},
+					src: 0,
+					allList:[],
+					deviceList:[],
+					yonggongList:[]
+				}
+			},
+			mounted: function() {
+				this.id = DX.getParam('id')
+				this.parentId = DX.getParam('parentId')
+				this.findById()
+				this.getGongxu()
+				this.getGongcheng()
+				this.getByContentId()
+			},
+			methods: {
+				changeDel:function(index,num){
+					if(num==1){
+						this.yonggongList[index].delEnter = true
+					}else{
+						this.yonggongList[index].delEnter = false
+					}
+					this.$forceUpdate()
+				},
+				delYongGong:function(val){
+					var that = this;
+					var yes = confirm('确定删除吗？')
+					if(yes){
+						DX.ajax_method({
+							'type': 'POST',
+							'param': {
+								id: val.id,
+							},
+							'url': '/prod/data/collect/delete/item/mamQuantity/byId',
+							'callBack': function(res) {
+								if (res.code == 200) {
+									DX.optionTitle('删除成功')
+									that.getYongGongCount()
+								}
+							},
+						});
+					}
+				},
+				modYongGong:function(val){
+					var that = this;
+					DX.ajax_method({
+						'type': 'POST',
+						'param': {
+							id: val.id,
+							quantity:val.quantity
+						},
+						'url': '/prod/data/collect/modify/item/manQuantity/byId',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle('修改成功')
+								that.getYongGongCount()
+							}
+						},
+					});
+				},
+				inputBlur:function(val){
+					var that = this;
+					DX.ajax_method({
+						'type': 'POST',
+						'param': {
+							id: val.id,
+							planAmount: val.quantityPlan
+						},
+						'url': '/prod/xmachine/setPlanAmount',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle('修改成功')
+								that.getDevice()
+							}
+						},
+					});
+				},
+				delDevice:function(val){
+					var that = this;
+					DX.ajax_method({
+						'type': 'POST',
+						'param': {
+							id : val.id,
+						},
+						'url': '/prod/xmachine/deleteDevice',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle('删除成功')
+								that.getDevice()
+							}
+						},
+					});
+				},
+				goDevicce:function(){
+					DX.open('./addDevice.html?xjobId='+ this.id + '&xwbsId=' + this.parentId,{
+						title:'添加设备'
+					})
+				},
+				getDevice:function(){
+					var that = this;
+					DX.ajax_method({
+						'type': 'GET',
+						'param': {
+							xjobId: that.id,
+							xwbsId: that.parentId
+						},
+						'url': '/prod/xmachine/list/by/xjob',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								that.deviceList = res.data
+							}
+						},
+					});
+				},
+				getByContentId: function() { //获取工作内容查询状态
+					var that = this;
+					DX.ajax_method({
+						'type': 'GET',
+						'param': {
+							contentId: that.id
+						},
+						'url': '/count/process/getByContentId',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								var scr = 0;
+								switch (res.data.status + '') {
+									case '-1':
+										that.scr = 0;
+										break;
+									case '0':
+										that.scr = 1;
+										break;
+									case '1':
+										that.scr = 1;
+										break;
+									case '2':
+										that.scr = 1;
+										break;
+									default:
+										that.scr = 0;
+										break;
+								}
+							}
+						},
+					});
+				},
+				getGongshi(v) {
+					if (v == null) {
+						return
+					}
+					var date3 = v[1].getTime() - v[0].getTime() //时间差的毫秒数 
+					//计算出相差小时数
+					var hours = (date3 / (3600 * 1000)).toFixed(1)
+					this.workTime = hours
+				},
+				getGongxu() {
+					var $this = this
+					DX.ajax_method({
+						'param': {
+							'parentId': $this.parentId,
+							'level': 7
+						},
+						'url': '/prod/xact/list/byLevel',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.list = res.data
+							}
+						}
+					});
+				},
+				delRedEnter(v) {
+					v.delRed = false
+					this.$forceUpdate()
+				},
+				delRedLeave(v) {
+					v.delRed = true
+					this.$forceUpdate()
+				},
+				delObs(v) {
+					var $this = this
+					DX.ajax_method({
+						'url': '/plancount/obs/jobmanager/person/delete/by/info',
+						'type': 'POST',
+						'param': {
+							uid: v.uid,
+							xJobId: $this.id,
+							departId: v.departId,
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle()
+								$this.getObsTbs()
+							} else {
+								DX.optionTitle(res.msg);
+							}
+						}
+					})
+				},
+				delTbs(v) {
+					var $this = this
+					DX.ajax_method({
+						'url': '/plancount/tbs/jobbuilder/delete/byId',
+						'type': 'POST',
+						'param': {
+							id: v.id,
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.getObsTbs()
+							} else {
+								DX.optionTitle(res.msg);
+							}
+						}
+					})
+				},
+				handleClickLeft(tab, event) {
+					var $this = this
+					if (tab.index == 1) { //查询obs与tbs
+						$this.getObsTbs()
+					} else if (tab.index == 0) {
+						$this.getGongcheng()
+					} else {
+						$this.getCaiLiao()
+						$this.getDevice()
+						$this.getYongGongCount()
+					}
+				},
+				getGongcheng() {
+					var $this = this
+					DX.ajax_method({
+						'url': '/count/baseInfo/findQtyByJobId',
+						'param': {
+							jobId: $this.id,
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.GongList = res.data
+							} else {
+								DX.optionTitle(res.msg);
+							}
+						}
+					})
+				},
+				getYongGongCount:function(){
+					var $this = this
+					DX.ajax_method({
+						'url': '/prod/data/collect/get/item/manQuantity',
+						'param': {
+							xJobId: $this.id,
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.yonggongList = res.data
+								$.each($this.yonggongList,function(i,v){
+									v.delEnter = false
+								})
+							} else {
+								DX.optionTitle(res.msg);
+							}
+						}
+					})
+				},
+				getCaiLiao() {
+					var $this = this
+					DX.ajax_method({
+						'url': '/count/baseInfo/findMaterialQtyByJobId',
+						'param': {
+							jobId: $this.id,
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.cailiaoList = res.data
+							} else {
+								DX.optionTitle(res.msg);
+							}
+						}
+					})
+				},
+				getObsTbs() {
+					var $this = this
+					DX.ajax_method({
+						'url': '/prod/xact/tbs/teams/by/xjob',
+						'param': {
+							xjobId: $this.id,
+							xwbsId: $this.parentId
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.obsList = res.data.persons
+								$this.tbsList = res.data.teams
+								$.each($this.obsList, function(i, v) {
+									v.delRed = true
+								})
+								$.each($this.tbsList, function(i, v) {
+									v.delRed = true
+								})
+							} else {
+								DX.optionTitle(res.msg);
+							}
+						}
+					})
+				},
+				handleClickRight(tab, event) {
+					console.log(tab, event);
+				},
+				findById() {
+					var $this = this
+					DX.ajax_method({
+						'url': '/prod/xact/by/id',
+						'param': {
+							id: $this.id
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.allList = res.data
+								$this.parentId = res.data.parentId
+								$this.twoTime = [new Date(res.data.startTime), new Date(res.data.endTime)];
+								$this.workTime = ((new Date(res.data.endTime).getTime() - new Date(res.data.startTime).getTime()) / (3600 *
+									1000)).toFixed(1)
+							} else {
+								DX.optionTitle(res.msg);
+							}
+						}
+					})
+				},
+				updateTime() { //更新时间
+					var $this = this
+					DX.ajax_method({
+						'type': 'POST',
+						'url': '/prod/xact/xjob/modify/time/plan',
+						'param': {
+							// 'startTime': $this.planStartTimeDate.getFullYear() + "-" + ($this.planStartTimeDate.getMonth() + 1) +
+							// 	"-" + $this.planStartTimeDate.getDate() + ' ' + "13:30:00",
+							// 'endTime': $this.planEndTimeDate.getFullYear() + "-" + ($this.planEndTimeDate.getMonth() + 1) + "-" +
+							// 	$this.planEndTimeDate.getDate() + ' ' + "14:00:00",
+							'startTime': $('.el-date-editor--datetimerange').find('input').eq(0).val(),
+							'endTime': $('.el-date-editor--datetimerange').find('input').eq(1).val(),
+							'currId': $this.id,
+							'preId': $this.list[Number(DX.getParam('index')) - 1].id,
+							'afterId': $this.list[Number(DX.getParam('index')) + 1].id,
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle()
+							} else {
+								DX.optionTitle(res.msg);
+							}
+						}
+					})
+				},
+				gofluxCalc() {
+					// DX.closeModal()
+					DX.open('../../../fluxCalc/company/calcPronum.html?contentId=' + this.id + '&parentId=' + this.parentId + '&type=' +
+						this.src + '&fromTo=1', {
+							title:'工程量计算'
+						})
+				
+				},
+				addObs() { //添加责任人（obs）
+					this.hide4 = false;
+					var that = this;
+					var check = []
+					$.each(that.obsList, function(i, v) {
+						check.push(v.uid)
+					})
+					DX.ajax_method({
+						'url': '/plancount/obs/jobmanager/query/userTree',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$.fn.zTree.init($("#addPeopleTree"), pMSet, res.data);
+								var zobj = $.fn.zTree.getZTreeObj("addPeopleTree")
+								zobj.expandAll(true);
+								$.each(check, function(i, v) {
+									var node = zobj.getNodesByParam("uid", v)
+									zobj.checkNode(node[0], true, true);
+								})
+							}
+						}
+					});
+				},
+				addTbs() { //添加队伍（tbs）
+					var arr = []
+					$.each(this.tbsList, function(index, value) {
+						arr.push(value.builderId)
+					})
+					DX.open('./addTeam.html?contentId=' + this.id + '&teamId=' + arr.join(",") + '&xwbsId=' + this.parentId, {
+						width: 600,
+						height: 350
+					})
+				},
+				closeModal: function() {
+					this.hide4 = true;
+				},
+				saveAddPeople: function() { //保存单个工作添加责任人
+					var that = this;
+					var arr = [];
+					var nodes = $.fn.zTree.getZTreeObj("addPeopleTree").getCheckedNodes(true);
+					$.each(nodes, function(i, v) {
+						if (v.level == 2) {
+							arr.push({
+								userId: v.uid,
+								departId: v.departId
+							})
+						}
+					})
+					DX.ajax_method({
+						'url': '/plancount/obs/jobmanager/modify/forJob',
+						'param': {
+							usersInfo: JSON.stringify(arr),
+							jobId: this.id
+						},
+						'type': 'POST',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								that.getObsTbs()
+								that.closeModal()
+							}
+						}
+					})
+				},
+			},
+			watch: {},
+		})
+		var pMSet = {
+			check: {
+				enable: true,
+				chkStyle: "checkbox", // 添加生效
+				chkboxType: {
+					"Y": "s",
+					"N": "s"
+				},
+				radioType: "level"
+			},
+			data: {
+				simpleData: {
+					enable: true,
+					idKey: "nodeId",
+					pIdKey: "parentId"
+				},
+				keep: {
+					leaf: true,
+					parent: false
+				},
+				key: {
+					name: "nodeName",
+					title: "nodeName"
+				}
+			},
+			view: {
+				showLine: true,
+				selectedMulti: true
+			},
+			callback: {
+				beforeCheck: true,
+				// onCheck: leftPeopleCheck,
+			},
+		};
+	</script>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TBS分解（劳务队伍）</title>
+    <link rel="stylesheet" type="text/css" href="../../../static/common.css" />
+    <link rel="stylesheet" type="text/css" href="../../../static/elementui.css" />
+    <style type="text/css">
+        body {margin: 0;}
+        #constructionPage{padding: 10px 0;}
+        .tip{color: #BCBCBC;}
+        .teamList li{height: 25px;line-height: 25px;}
+    </style>
+</head>
+<body>
+<div id="constructionPage" v-cloak>
+    <div :style="{height: (height - 36) + 'px'}" style="overflow: auto;padding: 0 16px;">
+        <div class="tip">* &nbsp;请选择施工该部位的队伍</div>
+        <div class="teamList">
+            <ul>
+                <li v-for="(item,idx) in teamList" :key="idx">
+                    <label>
+                        <input type="checkbox" v-model="teamId" :value="item.teamId">
+                        <span :style="{'color':teamId!=item.teamId ? ' #000000':'#1E90FF'}">{{item.teamName}}</span>
+                    </label>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div style="width: 100%;height: 40px;line-height:40px;position:fixed;bottom: 0;z-index: 99;">
+        <ul class="bottom" style="position: absolute;bottom: 5px;left: 50%;transform: translateX(-50%);">
+            <li class="fr btnGray ml20" @click="closeModal">取消</li>
+            <li class="fr btnBlue saveBtn" @click="save">保存</li>
+        </ul>
+    </div>
+</div>
+</body>
+<script src="../../../static/js/jquery-1.8.3.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../../static/js/vue.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../../static/dx.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+    var contentId = DX.getParam("contentId");
+    var teamId = DX.getParam("teamId");
+    // var type = DX.getParam("type");
+    var vm = new Vue({
+        el: '#constructionPage',
+        data: {
+            teamList: [],
+            height: 300,
+            teamId: [],
+			istbs:'' , //如果是1，说明是选择tbs的，而不是用工数量
+        },
+        mounted: function() {
+            var that = this;
+			this.istbs = DX.getParam('istbs')
+            that.teamId = !teamId ? [] : teamId.split(",");
+            this.getTeamList();
+            setTimeout(function () {
+                that.height = $(window).height() - 30
+            },300)
+        },
+        methods: {
+            getTeamList: function() {
+                var that = this;
+                DX.ajax_method({
+                    'url': '/plancount/team/query/list/all',
+                    'callBack': function(res) {
+                        if (res.code == 200) {
+                            that.teamList = res.data;
+                        }
+                    }
+                });
+            },
+            closeModal:function(){
+                DX.closeModal()
+            },
+            save:function () {
+				var that = this
+				var url = "";
+				var obj = {};
+				url = "/plancount/tbs/jobbuilder/modify"
+				var xwbsId = DX.getParam("xwbsId")
+				var id = DX.getParam("id")
+				var temp = [];
+				$.each(this.teamList,function(index,value){
+					if(that.teamId.indexOf(value.teamId) > -1 || that.teamId.indexOf(value.teamId.toString()) > -1){
+						temp.push(value.teamId + '-' + value.teamType)
+					}
+				})
+				obj = {jobId : contentId, teamArray: temp.join(","),id: id,xwbsId: xwbsId}
+                DX.ajax_method({
+                    'url': url,
+                    'param': obj,
+                    'type': 'POST',
+                    'callBack': function(res) {
+                        if (res.code == 200) {
+							if(that.istbs==1){  //tbs
+								DX.domParent("vm.getDevice(6)")
+							}else{//用工数量
+								DX.domParent("vm.getDevice(4)")
+							}
+                            DX.optionTitle();
+                            DX.closeModal()
+                        }
+                    }
+                });
+            },
+			unique:function (arr){            
+			        for(var i=0; i<arr.length; i++){
+			            for(var j=i+1; j<arr.length; j++){
+			                if(arr[i]==arr[j]){         //第一个等同于第二个，splice方法删除第二个
+			                    arr.splice(j,1);
+			                    j--;
+			                }
+			            }
+			        }
+			return arr;
+			}
+        },
+    })
+
+    $(window).resize(function () {
+        vm.height = $(window).height() - 30
+    })
+</script>
+</html>

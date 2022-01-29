@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+		<title>动态计划看板</title>
+		<link rel="stylesheet" type="text/css" href="../../static/common.css" />
+		<link rel="stylesheet" type="text/css" href="../../static/elementui.css" />
+		<style type="text/css">
+			[v-cloak] {
+				display: none !important;
+			}
+
+			body,
+			html,
+			#concreteBoard {
+				height: 100%;
+				overflow: hidden;
+			}
+
+			body {
+				margin: 0 !important;
+				height: 100%;
+				overflow: hidden;
+			}
+
+			#concreteBoard {
+				background: linear-gradient(#0E2350, #071333);
+				height: 100%;
+				overflow: hidden;
+				overflow-x: auto;
+			}
+
+			.header {
+				display: flex;
+				justify-content: space-between;
+				width: 100%;
+				height: 76px;
+			}
+
+			.header-left {
+				background-image: url("./img/bg-header-left.png");
+				background-repeat: no-repeat;
+				background-size: 100% 38px;
+				background-position: -40px;
+				height: 38px;
+				line-height: 38px;
+				width: 25%;
+				text-align: center;
+				color: rgba(255, 255, 255, 0.6);
+			}
+
+			.header-center {
+				background-image: url("./img/bg-header-center.png");
+				background-repeat: no-repeat;
+				background-size: 100% 76px;
+				background-position: left top;
+				height: 76px;
+				line-height: 76px;
+				width: 50%;
+				text-align: center;
+				color: #FFFFFF;
+				font-size: 28px;
+				vertical-align: middle;
+			}
+
+			.header-right {
+				background-image: url("./img/bg-header-right.png");
+				background-repeat: no-repeat;
+				background-size: 100% 38px;
+				background-position: left top;
+				height: 38px;
+				line-height: 38px;
+				width: 25%;
+				position: relative;
+			}
+
+			.refresh {
+				position: absolute;
+				right: 15px;
+				cursor: pointer;
+			}
+
+			.middle-content {
+				padding: 30px 15px 15px;
+				display: flex;
+				justify-content: space-between;
+			}
+
+			.middle-height {
+				height: 236px;
+			}
+
+			.partContent {
+				overflow-y: hidden;
+				position: relative;
+				top: 38px;
+				padding: 10px 30px 15px 15px;
+			}
+
+			.partContent {
+				height: 150px;
+			}
+
+			.middle-left {
+				width: calc(50% - 10px);
+				position: relative;
+				background-image: url("./img/bg-box1.png");
+				background-repeat: no-repeat;
+				background-size: 100% 100%;
+				background-position: left top;
+			}
+
+			.middle-center {
+				width: calc(50% - 10px);
+				position: relative;
+				background-image: url("./img/bg-box1.png");
+				background-repeat: no-repeat;
+				background-size: 100% 100%;
+				background-position: left top;
+				margin-left: 20px;
+			}
+
+			.middle-right {
+				width: 100%;
+				position: relative;
+				background-image: url("./img/bg-box1.png");
+				background-repeat: no-repeat;
+				background-size: 100% 100%;
+				background-position: left top;
+			}
+
+			.middle-left-header {
+				font-size: 16px;
+				font-weight: bold;
+				padding-top: 3px;
+				position: absolute;
+				top: -10px;
+				left: 100px;
+				color: rgba(255, 255, 255, 1);
+				width: 170px;
+				height: 40px;
+				line-height: 40px;
+				text-align: center;
+				background-image: url("./img/bg-box2.png");
+				background-repeat: no-repeat;
+				background-size: 100% 100%;
+				background-position: left top;
+			}
+
+			.middle-center-header {
+				font-size: 16px;
+				font-weight: bold;
+				padding-top: 3px;
+				position: absolute;
+				top: -10px;
+				left: calc((100% - 170px) / 2);
+				color: rgba(255, 255, 255, 1);
+				width: 170px;
+				height: 40px;
+				line-height: 40px;
+				text-align: center;
+				background-image: url("./img/bg-box2.png");
+				background-repeat: no-repeat;
+				background-size: 100% 100%;
+				background-position: left top;
+			}
+
+			.middle-right-header {
+				font-size: 16px;
+				font-weight: bold;
+				padding-top: 3px;
+				position: absolute;
+				top: -10px;
+				left: calc((100% - 170px) / 2);
+				color: rgba(255, 255, 255, 1);
+				width: 170px;
+				height: 40px;
+				line-height: 40px;
+				text-align: center;
+				background-image: url("./img/bg-box2.png");
+				background-repeat: no-repeat;
+				background-size: 100% 100%;
+				background-position: left top;
+			}
+
+			.partTotal {
+				position: absolute;
+				right: 50px;
+				top: 6px;
+			}
+
+			.partTotal span:nth-child(1) {
+				color: rgba(255, 255, 255, 0.7);
+				font-size: 12px;
+			}
+
+			.partTotal span:nth-child(2) {
+				color: #419DF4;
+				font-size: 28px;
+			}
+
+			.tables {
+				color: #9FF8FC;
+				line-height: 38px;
+				height: 38px;
+			}
+
+			.tables .tablecontion {
+				border-bottom: 1px solid rgba(23, 50, 91, 1);
+				opacity: 0.7;
+			}
+
+			.tables li {
+				float: left;
+				text-align: center;
+				height: 38px;
+				line-height: 38px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.tables li:first-child {
+				width: 85%;
+			}
+
+			.tables li:nth-child(2) {
+				width: 15%;
+			}
+
+			.tables .tableHead {
+				background: #11348B;
+				opacity: 0.7;
+				padding: 0 15px;
+			}
+
+			.middle-center-content {
+				position: relative;
+				top: 38px;
+				padding: 10px 30px 15px 15px;
+				display: flex;
+				justify-content: space-between;
+			}
+
+			.middle-center-content-bg {
+				background-image: url("./img/bg-box3.png");
+				background-repeat: no-repeat;
+				background-size: 100% 100%;
+				background-position: left top;
+				width: 30%;
+				box-sizing: border-box;
+				text-align: center;
+			}
+
+			.middle-center-content-bg {
+				height: 172px;
+				padding: 20px 15px;
+			}
+
+			.middle-right-content {
+				position: relative;
+				top: 40px;
+				padding: 10px 30px 15px 15px;
+				height: calc(100% - 40px);
+				box-sizing: border-box;
+			}
+
+			.orderTotal {
+				background-image: url("./img/bg-box3.png");
+				background-repeat: no-repeat;
+				background-size: 100% 100%;
+				background-position: left top;
+				height: 93px;
+				width: 73px;
+				box-sizing: border-box;
+				text-align: center;
+				padding: 15px 10px;
+				position: absolute;
+				left: 15px;
+				bottom: 15px;
+			}
+
+			#orderPieChart {
+				width: calc(100% - 75px);
+				box-sizing: border-box;
+				position: relative;
+				left: 55px;
+			}
+
+			#orderPieChart {
+				height: 185px;
+			}
+
+			.bottom-content {
+				padding: 15px;
+				box-sizing: border-box;
+			}
+
+			.bottom-height {
+				height: calc(100% - 360px);
+			}
+
+			.tables1 {
+				color: rgba(255, 255, 255, 0.6);
+				line-height: 38px;
+				height: 38px;
+			}
+
+			.tables1 .tablecontion {
+				color: rgba(255, 255, 255, 0.8);
+				border-bottom: 1px solid rgba(23, 50, 91, 1);
+			}
+
+			.tables1 li {
+				float: left;
+				text-align: center;
+				height: 38px;
+				line-height: 38px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.tables1 .tableHead1 {
+				background: rgba(17, 52, 139, 1);
+				color: rgba(255, 255, 255, 1);
+			}
+
+			.tables1 li:first-child {
+				width: 5%;
+			}
+
+			.tables1 li:nth-child(2) {
+				width: 30%;
+				overflow: hidden;
+			}
+
+			.tables1 li:nth-child(8) {
+				width: 16%;
+			}
+
+			.tables1 li:nth-child(9) {
+				width: 14%;
+			}
+
+			.tables1 li:nth-child(4),
+			.tables1 li:nth-child(7) {
+				width: 10%;
+			}
+
+			.tables1 li:nth-child(5),
+			.tables1 li:nth-child(6) {
+				width: 10%;
+			}
+
+			.tables1 li:nth-child(3),
+			.tables1 li:nth-child(10),
+			.tables1 li:nth-child(11) {
+				width: 8%;
+			}
+
+			.tables1 li:nth-child(12) {
+				width: 5%;
+			}
+
+			.wxd {
+				color: rgba(255, 255, 255, 0.5)
+			}
+
+			.yxd {
+				color: rgba(255, 255, 255, 1)
+			}
+
+			.ypc {
+				color: rgba(247, 181, 0, 1)
+			}
+
+			.scz {
+				color: rgba(65, 157, 244, 1)
+			}
+
+			.ywc {
+				color: rgba(31, 150, 135, 1)
+			}
+
+
+			@media screen and (max-width:1280px) {
+				#orderPieChart {
+					height: 168px;
+				}
+
+				.middle-height {
+					height: 230px;
+				}
+
+				.partContent {
+					height: 156px;
+				}
+
+				.bottom-height {
+					height: calc(100% - 352px);
+				}
+
+				.middle-center-content-bg {
+					height: 168px;
+					padding: 20px 15px;
+				}
+
+				.font-big {
+					font-size: 24px
+				}
+
+				.font-small {
+					font-size: 12px
+				}
+			}
+
+			@media screen and (min-width: 1280px) and (max-width:1440px) {
+				#orderPieChart {
+					height: 168px;
+				}
+
+				.middle-height {
+					height: 230px;
+				}
+
+				.partContent {
+					height: 156px;
+				}
+
+				.bottom-height {
+					height: calc(100% - 352px);
+				}
+
+				.middle-center-content-bg {
+					height: 168px;
+					padding: 20px 15px;
+				}
+
+				.font-big {
+					font-size: 24px
+				}
+
+				.font-small {
+					font-size: 12px
+				}
+			}
+
+			@media screen and (min-width: 1440px) and (max-width:1600px) {
+				#orderPieChart {
+					height: 190px;
+				}
+
+				.middle-height {
+					height: 251px;
+				}
+
+				.partContent {
+					height: 178px;
+				}
+
+				.bottom-height {
+					height: calc(100% - 373px);
+				}
+
+				.middle-center-content-bg {
+					height: 190px;
+					padding: 28px 15px;
+				}
+
+				.font-big {
+					font-size: 28px
+				}
+
+				.font-small {
+					font-size: 12px
+				}
+
+			}
+
+			@media screen and (min-width: 1600px) {
+				.font-big {
+					font-size: 28px
+				}
+
+				.font-small {
+					font-size: 12px
+				}
+
+				#orderPieChart {
+					height: 200px;
+				}
+
+				.middle-height {
+					height: 264px;
+				}
+
+				.partContent {
+					height: 188px;
+				}
+
+				.bottom-height {
+					height: calc(100% - 390px);
+				}
+
+				.middle-center-content-bg {
+					height: 200px;
+					padding: 35px 15px;
+				}
+			}
+
+			@media screen and (max-height:644px) {
+				#orderPieChart {
+					height: 154px;
+				}
+
+				.middle-height {
+					height: 215px;
+				}
+
+				.partContent {
+					height: 142px;
+				}
+
+				.bottom-height {
+					height: calc(100% - 336px);
+				}
+
+				.middle-center-content-bg {
+					height: 154px;
+					padding: 16px 15px;
+				}
+
+				.font-big {
+					font-size: 24px
+				}
+
+				.font-small {
+					font-size: 12px
+				}
+			}
+
+			.pp {
+				color: #fff;
+			}
+
+			.pp img {
+				height: 14px;
+				width: 100%;
+			}
+
+			.pp p {
+				text-indent: 20px;
+			}
+
+			.el-progress-bar__outer {
+				border-radius: 0;
+				background-color: transparent;
+				overflow: hidden;
+				position: relative;
+				vertical-align: middle;
+				border: 1px solid #419DF4;
+			}
+
+			.el-progress-bar__inner {
+				border-radius: 0;
+			}
+
+			.cccc .el-progress {
+				width: 80%;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="concreteBoard" v-cloak>
+			<div class="header">
+				<div class="header-left">{{currentTime}}</div>
+				<div class="header-center">动态计划看板</div>
+				<div class="header-right">
+					<span class="refresh" @click="shuaxin()">
+						<span style="color: rgba(255,255,255,0.6);font-size: 12px;margin-right: 5px;">刷新</span>
+						<img src="./img/icon-refresh.png" style="width: 15px;height: 15px;" />
+					</span>
+				</div>
+			</div>
+			<div style="display: flex;height: calc(100% - 80px);">
+				<div class="middle-content"
+					style="display: flex;flex-direction: column;flex: 2;height: calc(100% - 40px);">
+					<div style="display: flex;">
+						<div class="middle-left middle-height"
+							style="background-image: url(./img/bg-box5.png);min-width: 377px;">
+							<div class="middle-left-header">施工工期</div>
+							<div ref="partContent" class="partContent"
+								style="display: flex;padding: 10px 15px 15px 15px;">
+								<div class="pp" ref="partRank"
+									style="overflow-y: hidden;box-shadow: 0 1px 12px 0 rgba(65, 157, 244, 0.4) inset;padding: 15px 15px;height: calc(100% - 20px);display: flex;flex: 3;flex-direction: column;justify-content: space-around;">
+									<p><span>开工日期</span> <span>{{topLeftList.startTime}}</span></p>
+									<img src="img/blueLine.png">
+									<p><span>竣工日期</span> <span>{{topLeftList.endTime}}</span></p>
+									<img src="img/blueLine.png">
+									<p><span>施工工期</span> <span>{{(topLeftList.hrsPeriod/3600/24).toFixed(0)}}天</span>
+									</p>
+									<img src="img/blueLine.png">
+									<p><span>实际开工时间</span> <span>{{topLeftList.implDate}}</span></p>
+								</div>
+								<div
+									style="display: flex;flex: 2 1 0%;justify-content: space-around;align-items: center;height: calc(100% - 4px);padding: 15px 0px;flex-direction: column;">
+									<div
+										style="position: relative;display: flex;justify-content: center;align-items: center;">
+										<span
+											style="position: absolute;background-color: rgb(18, 61, 108);width: 95px;height: 95px;display: flex;border-radius: 50%;color: rgb(255, 255, 255);font-size: 30px;justify-content: center;align-items: center;">{{(topLeftList.leftPeriod/3600/24).toFixed(0)}}</span>
+										<el-progress type="circle" :percentage="25" color="#48a3f5" :stroke-width="8"
+											:show-text="false"></el-progress>
+									</div>
+									<span style="font-size: 14px;color: #fff;">剩余工期(天)</span>
+								</div>
+							</div>
+						</div>
+						<div class="middle-center middle-height"
+							style="background-image: url(./img/bg-box5.png);min-width: 630px;">
+							<div class="middle-center-header">工程进度</div>
+							<div class="middle-center-content"
+								style="display: flex;height: calc(100% - 62px);padding: 10px 20px 15px 15px;">
+								<div style="display: flex;flex-direction: column;width: 40%;justify-content: space-between;"
+									class="cccc">
+									<p style="font-size: 14px;color: #fff;height: 38px;">{{topRightList.name}}</p>
+									<div v-if="topRightList.totalCount==0"
+										style="display: flex;width: 100%;align-items: center;justify-content: space-between;margin-bottom: 10px;">
+										<div style="width: 70%;display: flex;">
+											<span
+												style="display: inline-block;width: 8px;height: 17px;background: #419DF4;margin-right: 5px;"></span>
+											<el-progress v-if="!isNaN(zroe)" :stroke-width="15" :show-text="false"
+												:percentage="zroe" color="#76CCFA"></el-progress>
+											<span
+												style="display: inline-block;width: 8px;height: 17px;background: #419DF4;margin-left: 5px;"></span>
+										</div>
+										<span
+											style="margin-left: 5px;color: #fff;">{{topRightList.finishedCount}}/{{topRightList.totalCount}}</span>
+									</div>
+									<div v-else
+										style="display: flex;width: 100%;align-items: center;justify-content: space-between;margin-bottom: 10px;">
+										<div style="width: 70%;display: flex;">
+											<span
+												style="display: inline-block;width: 8px;height: 17px;background: #419DF4;margin-right: 5px;"></span>
+											<el-progress
+												v-if="!isNaN(Number((topRightList.finishedCount*100/topRightList.totalCount).toFixed(0)))"
+												:stroke-width="15" :show-text="false"
+												:percentage="Number((topRightList.finishedCount*100/topRightList.totalCount).toFixed(0))"
+												color="#76CCFA"></el-progress>
+											<span
+												style="display: inline-block;width: 8px;height: 17px;background: #419DF4;margin-left: 5px;"></span>
+										</div>
+										<span style="margin-left: 5px;color: #fff;"
+											v-if="topRightList.finishedCount">{{topRightList.finishedCount}}/{{topRightList.totalCount}}</span>
+									</div>
+									<div class="pp" ref="partRank"
+										style="overflow: hidden;box-shadow: rgba(65, 157, 244, 0.4) 0px 1px 12px 0px inset;padding: 5px 15px;height: calc(100% - 20px);display: flex;flex-direction: column;justify-content: space-around;min-width: 210px;background: #0e2769;height: 90px;">
+										<p style="text-indent: 0;"><span>计划开始日期</span>
+											<span>{{topRightList.planStartTime}}</span></p>
+										<p style="text-indent: 0;"><span>计划结束日期</span>
+											<span>{{topRightList.planEndTime}}</span></p>
+										<p style="text-indent: 0;"><span>实际开始日期</span>
+											<span>{{topRightList.implStartTime}}</span></p>
+										<p style="text-indent: 0;"><span>预计结束日期</span>
+											<span>{{topRightList.expectEndTime}}</span></p>
+									</div>
+									<!-- <div v-else-if="topRightList.status==3" class="pp" ref="partRank" style="overflow: hidden;box-shadow: rgba(65, 157, 244, 0.4) 0px 1px 12px 0px inset;padding: 5px 15px;height: calc(100% - 20px);display: flex;flex-direction: column;justify-content: space-around;min-width: 210px;background: #0e2769;height: 90px;">
+										<p style="text-indent: 0;"><span>实际开始日期</span> <span>{{topRightList.implStartTime}}</span></p>
+										<p style="text-indent: 0;"><span>实际结束日期</span> <span>{{topRightList.implEndTime}}</span></p>
+										<p style="text-indent: 0;"><span>实际施工工期</span> <span>{{topRightList.shijigongqi}}</span></p>
+									</div>
+									<div v-else class="pp" ref="partRank"	style="overflow: hidden;box-shadow: rgba(65, 157, 244, 0.4) 0px 1px 12px 0px inset;padding: 5px 15px;height: calc(100% - 20px);display: flex;flex-direction: column;justify-content: space-around;min-width: 210px;background: #0e2769;height: 90px;">
+										<p style="text-indent: 0;"><span>计划开始日期</span> <span>{{topRightList.expectStartTime}}</span></p>
+										<p style="text-indent: 0;"><span>计划结束日期</span> <span>{{topRightList.expectEndTime}}</span></p>
+										<p style="text-indent: 0;"><span>预测施工工期</span> <span>{{topRightList.jihuagongqi}}</span></p>
+									</div> -->
+								</div>
+								<div style="width: 2px;background-color: #09336d;"></div>
+								<div
+									style="display: flex;flex-direction: column;width: 55%;justify-content: space-between;">
+									<div
+										style="background-image: url(img/lastTop.png);width: 100%;height: calc(50% - 3px);background-repeat: no-repeat;background-size: 100% 100%;background-position: left top;display: flex;justify-content: space-around;align-items: center;color: #fff;">
+										<span
+											style="display: flex;flex-direction: column;align-items: center;justify-content: space-between;">
+											<span
+												style="font-size: 28px;font-weight: 600;color: #DDEEFF;">{{topRightList.noStartCount}}</span>
+											<span>未开始部位</span>
+										</span>
+										<span
+											style="display: flex;flex-direction: column;align-items: center;justify-content: space-between;">
+											<span
+												style="font-size: 28px;font-weight: 600;color: #419DF4;">{{topRightList.startedCount}}</span>
+											<span>正在施工部位</span>
+										</span>
+										<span
+											style="display: flex;flex-direction: column;align-items: center;justify-content: space-between;">
+											<span
+												style="font-size: 28px;font-weight: 600;color: #16C4AF;">{{topRightList.finishedCount}}</span>
+											<span>已完成部位</span>
+										</span>
+									</div>
+									<div
+										style="background-image: url(img/lastBottom.png);width: 100%;height: calc(50% - 3px);background-repeat: no-repeat;background-size: 100% 100%;background-position: left top;margin-top: 6px;color: #fff;justify-content: space-around;align-items: center;display: flex;">
+										<span
+											style="display: flex;flex-direction: column;align-items: center;justify-content: space-between;">
+											<span
+												style="font-size: 28px;font-weight: 600;color: #f22a2b;">{{topRightList.level1Count}}</span>
+											<span>一级预警部位</span>
+										</span>
+										<span
+											style="display: flex;flex-direction: column;align-items: center;justify-content: space-between;">
+											<span
+												style="font-size: 28px;font-weight: 600;color: #fee703;">{{topRightList.level2Count}}</span>
+											<span>二级预警部位</span>
+										</span>
+										<span
+											style="display: flex;flex-direction: column;align-items: center;justify-content: space-between;">
+											<span
+												style="font-size: 28px;font-weight: 600;color: #1e90ff;">{{topRightList.level3Count}}</span>
+											<span>三级预警部位</span>
+										</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div style="display: flex;flex: 1;margin-top: 20px;height: calc(100% - 336px);">
+						<div ref="tableContents" class="echart tables1" style="height: 100%;width: 100%;">
+							<ul class="clearfix tableHead1" style="position: relative;z-index: 1000;">
+								<li>序号</li>
+								<li>工程部位</li>
+								<li>完成状态</li>
+								<li>计划开始时间</li>
+								<li>计划结束时间</li>
+								<li>计划工期(天)</li>
+								<li>管理责任人</li>
+								<li>施工队伍</li>
+							</ul>
+							<div ref="teamSummary" class="leftBottomBox"
+								style="height: calc(100% - 40px);border: 1px solid #023456;">
+								<div style="width: 100%;position: relative;" class="scroll">
+									<ul class="clearfix tablecontion" v-for="val,index in leftBottomList"
+										:key="val.index">
+										<li>{{index+1}}</li>
+										<li style="text-align: left;">{{val.pathname}}/{{val.name}}</li>
+										<!-- <li style="color: #76CCFA;">{{val.name}}</li> -->
+										<li v-if="val.status==0" style="color: #DDEEFF;">未开始</li>
+										<li v-if="val.status==1" style="color: #419DF4;">进行中</li>
+										<li v-if="val.status==3" style="color: #16C4AF;">已完成</li>
+										<li>{{val.expectStartTime}}</li>
+										<li>{{val.expectEndTime}}</li>
+										<li>{{(val.planPeriod/3600/24).toFixed(0)}}</li>
+										<li>{{val.obsName}}</li>
+										<li>{{val.tbsName}}</li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="middle-content"
+					style="display: flex;flex-direction: column;flex: 1;height: calc(100% - 40px);padding-left: 0;">
+					<div class="middle-right middle-height" style="height: 100%;min-width: 350px;">
+						<div class="middle-right-header"
+							style="display: flex;align-items: center;justify-content: center;">
+							<span>预警明细</span>
+							<img src="img/light.png" style="width: 15px;margin-left: 5px;">
+						</div>
+						<div class="middle-right-content rightBox"
+							style="padding: 10px 30px 15px 30px;overflow: hidden;">
+							<div style="width: 100%;color: #fff;display: flex;align-items: center;">
+								<span>一级预警</span>
+								<span
+									style="display: inline-block;width: 28px;height: 14px;background-color: #f22a2b;border-radius: 2px;margin:0 8px ;"></span>
+								<span>二级预警</span>
+								<span
+									style="display: inline-block;width: 28px;height: 14px;background-color: #fee703;border-radius: 2px;margin:0 8px ;"></span>
+								<span>三级预警</span>
+								<span
+									style="display: inline-block;width: 28px;height: 14px;background-color: #1e90ff;border-radius: 2px;margin:0 8px ;"></span>
+							</div>
+							<div style="width: 100%;" class="rightBoxMin">
+								<div ref="partRank"
+									style="overflow: hidden;box-shadow: rgba(65, 157, 244, 0.4) 0px 1px 12px 0px inset;padding: 10px;display: flex;background: #0e2769;position: relative;color: #fff;border-radius: 2px;margin-top: 10px;"
+									v-for="v,i in rightList" :key="i">
+									<span>
+										<span v-if="v.warnLevel==3" style="color: #1e90ff;">【工期滞后预警】</span>
+										<span v-if="v.warnLevel==2" style="color: #fee703;">【工期滞后预警】</span>
+										<span v-if="v.warnLevel==1" style="color: #f22a2b;">【工期滞后预警】</span>
+										{{v.pathname}}<span>预计工期大于计划工期该部位施工进度可能会延后</span></span>
+									<img v-if="v.warnLevel==1" src="img/warn.png" width="14px" height="13px"
+										style="position: absolute;right: 14px;bottom:10px;">
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
+<script src="../../static/js/jquery-1.8.3.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../static/dx.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../static/js/vue.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" src="../../manage/static/js/echarts.min.js"></script>
+<script src="../../static/js/elementui.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+	var vm = new Vue({
+		el: '#concreteBoard',
+		data: {
+			timer: '',
+			currentTime: '',
+			topLeftList: '',
+			topRightList: '',
+			leftBottomList: '',
+			rightList: '',
+			LeftBottompageNo: 1, //页码
+			rightpageNo: 1, //页码
+			LeftBottompageSize: 10, //页码
+			rightpageSize: 10, //页码
+			LeftBottomFlag: true,
+			rightFlag: true,
+			zroe: 0,
+
+		},
+		created() {
+			var _this = this;
+			this.timer = setInterval(function() {
+				_this.currentTime = new Date().getFullYear() + '-' + _this.appendZero(new Date()
+						.getMonth() + 1) + '-' + _this.appendZero(new Date().getDate()) +
+					'  ' + new Date().getHours() + ':' + _this.appendZero(new Date().getMinutes()) + ':' +
+					_this.appendZero(new Date().getSeconds()) +
+					' 星期' + '日一二三四五六'.charAt(new Date().getDay()) + ' ';
+			}, 1000)
+
+		},
+		mounted() {
+			var $this = this
+			this.$nextTick(function() {
+				this.$refs.partContent.style.overflow = "hidden";
+				this.$refs.partRank.style.overflow = "hidden";
+				this.$refs.tableContents.style.overflow = "hidden"
+				this.$refs.teamSummary.style.overflow = "hidden"
+			})
+			this.LeftBottompageSize = Math.floor(($('.leftBottomBox').height() / 38))
+			this.rightpageSize = Math.floor((($('.rightBox').height() - 14) / 66))
+			this.getTopLeft()
+			this.getTopRight()
+			this.getRight()
+			setInterval(function() {
+				// if($this.LeftBottomFlag){
+				// 	$this.getLeftBottom()
+				// }
+				if ($this.rightFlag) {
+					$this.getRight()
+				}
+			}, 15000);
+		},
+		methods: {
+			scroll1: function(tableList) {
+				var $this = this;
+				var height2 = $('.tables1').height() - 38;
+				var length2 = tableList.length;
+				var standard2 = Math.floor(height2 / 38);
+				$this.leftBottomList = tableList;
+				if (length2 > standard2) {
+					$this.scrollHeight()
+				}
+			},
+			scrollHeight: function() {
+				var $this = this;
+				var height2 = $('.tables1').height() - 20;
+				var standard2 = Math.floor(height2 / 20);
+				var length2 = this.leftBottomList.length;
+				$('.scroll').css('top', 0);
+				$('.scroll').stop().animate({
+				    'top': '-' + (length2 - standard2) * 20
+				}, 15000, 'linear', function() {
+				    $this.scrollHeight();
+				});
+				// var tblTop = 0;
+				// var speedhq = 10; // 数值越大越慢
+				// var outerHeight = $('.tables1').height() - 130;
+				// function Marqueehq() {
+				// 	if (tblTop <= -38 * $this.leftBottomList.length) {
+				// 		tblTop = 0;
+				// 		clearInterval(MyMarhq)
+				// 	} else {
+				// 		tblTop -= 1;
+				// 	}
+				// 	$('.scroll').css('top', tblTop + 'px');
+				// }
+				// MyMarhq = setInterval(Marqueehq, speedhq);
+			},
+			shuaxin: function() {
+				window.location.reload()
+			},
+			appendZero: function(obj) {
+				if (obj < 10) {
+					return '0' + obj;
+				} else {
+					return obj
+				}
+			},
+			getTopLeft: function() {
+				var $this = this
+				DX.ajax_method({
+					'url': "/timenetwork/dashboard/project",
+					'callBack': function(res) {
+						if (res.code == 200) {
+							$this.topLeftList = res.data
+						} else {
+							DX.optionTitle(res.msg)
+						}
+					}
+				})
+			},
+			getTopRight: function() {
+				var $this = this
+				DX.ajax_method({
+					'url': "/timenetwork/dashboard/unionProjectList",
+					'callBack': function(res) {
+						if (res.code == 200) {
+							$this.topRightList = res.data[0]
+							$this.getLeftBottom(res.data[0].id)
+							if ($this.topRightList.expectStartTime != '' && $this.topRightList
+								.expectEndTime != '') {
+								var sDate1 = new Date($this.topRightList.expectStartTime)
+							.getTime();
+								var sDate2 = new Date($this.topRightList.expectEndTime).getTime();
+								var dateSpan = sDate2 - sDate1;
+								dateSpan = Math.abs(dateSpan);
+								$this.topRightList.jihuagongqi = dateSpan / (24 * 3600 * 1000) +
+									'天'
+							} else {
+								$this.topRightList.jihuagongqi = ''
+							}
+							if ($this.topRightList.implStartTime != '' && $this.topRightList
+								.implEndTime != '') {
+								var sDate3 = new Date($this.topRightList.implStartTime).getTime();
+								var sDate4 = new Date($this.topRightList.implEndTime).getTime();
+								var dateshijiSpan = sDate4 - sDate3;
+								dateshijiSpan = Math.abs(dateshijiSpan);
+								$this.topRightList.shijigongqi = dateshijiSpan / (24 * 3600 *
+									1000) + '天'
+							} else {
+								$this.topRightList.shijigongqi = ''
+							}
+							var num = 0
+							setInterval(function() {
+								if (num == res.data.length - 1) {
+									num = 0
+								} else {
+									num += 1
+								}
+								$this.topRightList = res.data[num]
+								$this.getLeftBottom(res.data[num].id)
+								if ($this.topRightList.expectStartTime != '' && $this
+									.topRightList.expectEndTime != '') {
+									var sDate1 = new Date($this.topRightList
+										.expectStartTime).getTime();
+									var sDate2 = new Date($this.topRightList.expectEndTime)
+										.getTime();
+									var dateSpan = sDate2 - sDate1;
+									dateSpan = Math.abs(dateSpan);
+									$this.topRightList.jihuagongqi = (dateSpan / (24 *
+										3600 * 1000)).toFixed(0) + '天'
+								} else {
+									$this.topRightList.jihuagongqi = ''
+								}
+								if ($this.topRightList.implStartTime != '' && $this
+									.topRightList.implEndTime != '') {
+									var sDate3 = new Date($this.topRightList.implStartTime)
+										.getTime();
+									var sDate4 = new Date($this.topRightList.implEndTime)
+										.getTime();
+									var dateshijiSpan = sDate4 - sDate3;
+									dateshijiSpan = Math.abs(dateshijiSpan);
+									$this.topRightList.shijigongqi = (dateshijiSpan / (24 *
+										3600 * 1000)).toFixed(0) + '天'
+								} else {
+									$this.topRightList.shijigongqi = ''
+								}
+							}, 15000);
+						} else {
+							DX.optionTitle(res.msg)
+						}
+					}
+				})
+			},
+			getLeftBottom: function(id) {
+				var $this = this
+				DX.ajax_method({
+					'param': {
+						pageNo: $this.LeftBottompageNo,
+						pageSize: 999,
+						unitProjectId: id
+					},
+					'url': "/timenetwork/dashboard/jobInfoList",
+					'callBack': function(res) {
+						if (res.code == 200) {
+							$this.leftBottomList = res.data.data
+							$this.scroll1(res.data.data)
+							// $('.leftBottomBox').css('display','none')
+							// $('.leftBottomBox').fadeIn("slow",function(){
+
+							// })
+							// if(res.data.totalPage<=$this.LeftBottompageSize){
+							// 	$this.LeftBottomFlag = false
+							// 	return
+							// }
+							// $this.LeftBottompageNo += 1
+							// if($this.LeftBottompageNo*$this.LeftBottompageSize>res.data.totalPage){
+							// 	$this.LeftBottompageNo = 1
+							// }
+						} else {
+							DX.optionTitle(res.msg)
+						}
+					}
+				})
+			},
+			getRight: function() {
+				var $this = this
+				DX.ajax_method({
+					'param': {
+						pageNo: $this.rightpageNo,
+						pageSize: $this.rightpageSize,
+					},
+					'url': "/timenetwork/dashboard/dotWbsInfoList",
+					'callBack': function(res) {
+						if (res.code == 200) {
+							$('.rightBoxMin').fadeOut()
+							$('.rightBoxMin').fadeIn("slow", function() {
+								$this.rightList = res.data.data
+							})
+							if (res.data.totalPage <= $this.rightpageSize) {
+								$this.rightFlag = false
+								return
+							}
+							$this.rightpageNo += 1
+							if ($this.rightpageNo * $this.rightpageSize > res.data.totalPage) {
+								$this.rightpageNo = 1
+							}
+						} else {
+							DX.optionTitle(res.msg)
+						}
+					}
+				})
+			},
+		},
+		beforeDestroy: function() {
+			if (this.timer) {
+				clearInterval(this.timer);
+			}
+		}
+	})
+</script>

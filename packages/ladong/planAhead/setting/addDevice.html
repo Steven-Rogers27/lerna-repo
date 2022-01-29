@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<link rel="stylesheet" href="../../../static/common.css">
+	</head>
+	<style type="text/css">
+		.sol label {
+			line-height: 30px;
+		}
+
+		#infor select {
+			width: 110px;
+			margin-right: 0;
+			margin-left: 10px;
+		}
+
+		.table tr td input.tableEdit {
+			height: 100%;
+		}
+	</style>
+	<body>
+		<div class="sol" id="infor" style="padding: 20px 0;" v-cloak>
+			<div id="topbox" style="width: 100%;" v-if="isSb">
+				<div class="top clearfix">
+					<label class="fl ">设备属性:</label>
+					<select class="select ml10 fl" v-model="state" @change="getData()">
+						<option value="0">全部</option>
+						<option value="1">常规设备</option>
+						<option value="2">特种设备</option>
+					</select>
+					<label class="fl ml20">设备类型:</label>
+					<select class="select ml10 fl" v-model="type" @change="getData()">
+						<option value="0">全部</option>
+						<option value="1">固资</option>
+						<option value="2">自有</option>
+						<option value="2">劳务</option>
+						<option value="2">租赁</option>
+					</select>
+					<input type="text" placeholder="输入设备名称搜索" class="input fl ml20" v-model="content" @keyup.enter="getData()" />
+					<button class="btnBlue fr ml20" @click="add()">确定添加</button>
+					<button class="btnBlue fr ml20" @click="openSb">新增设备</button>
+				</div>
+				<table class="table  mt20" id="checkboxDiv">
+					<thead>
+						<tr>
+							<th width="32px"></th>
+							<th width="32px">序号</th>
+							<th width="65px">管理号码</th>
+							<th width="32px">设备名称</th>
+							<th width="80px">规格型号</th>
+							<th width="85px">设备类型</th>
+							<th width="45px">设备属性</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="(v,i) in list" :key="i">
+							<td><label for=""><input type="checkbox" name="checkbox" :value="v.id" v-model="v.flag" :checked="v.flag" @click.stop="checkuser(v,$event)" /></label></td>
+							<td>{{order(i)}}</td>
+							<td>{{v.managementNumber}}</td>
+							<td>{{v.deviceName}}</td>
+							<td>{{v.specification}}</td>
+							<td>{{v.belong}}</td>
+							<td>{{v.state|stateS}}</td>
+						</tr>
+					</tbody>
+				</table>
+				<div class="page1 mt20"></div>
+			</div>
+			<div v-show="!isSb">
+				<div style="margin: 15px 0;display: flex;justify-content: center;align-items: center;">
+					<span style="width: 65px;display: inline-block;text-align: right;">设备名称：</span>
+					<input placeholder="请输入设备名称" v-model="deviceName" class="input" style="width: 390px;" />
+				</div>
+				<div style="margin: 15px 0;display: flex;justify-content: center;align-items: center;">
+					<span style="width: 65px;display: inline-block;text-align: right;">规格型号：</span>
+					<input placeholder="请输入设备规格型号"  v-model="specification" class="input" style="width: 390px;" />
+				</div>
+				<div style="display: flex;justify-content: center;align-items: center;">
+					<button class="btnBlue " @click="addSb()">保存</button>
+					<button class="btnBlue ml20" style="background: #fff;color: #009688;border: 1px solid;line-height: 26px;padding: 0px 11px;" @click="openSb">取消</button>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
+<script src="../../../static/js/jquery-1.8.3.js"></script>
+<script src="../../../static/dx.js"></script>
+<script src="../../../static/js/pages.js"></script>
+<script src="../../../static/js/vue.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+	var vm = new Vue({
+		el: '#infor',
+		mounted: function() {
+			this.xjobId = DX.getParam('xjobId')
+			this.xwbsId = DX.getParam('xwbsId')
+			this.getDevice()
+		},
+		data: {
+			pages: {
+				'pageSize': 20,
+				'pageIndex': 1
+			},
+			checklist: [],
+			list: [],
+			content: '',
+			state:'0',
+			type: '0',
+			xjobId: '',
+			xwbsId: '',
+			isSb: true,
+			specification:'',
+			deviceName:'',
+		},
+		methods: {
+			openSb:function(){
+				this.isSb = !this.isSb
+			},
+			addSb:function(){
+				var that = this;
+				DX.ajax_method({
+					'type': 'POST',
+					'param': {
+						deviceName: that.deviceName,
+						specification: that.specification
+					},
+					'url': '/device/tmp/add',
+					'callBack': function(res) {
+						if (res.code == 200) {
+							that.addSbLin(res.data)
+						}
+					},
+				});
+			},
+			addSbLin: function(data) {
+				var that = this;
+				var list = []
+				data.xjobId = that.xjobId
+				data.xwbsId = that.xwbsId
+				list.push(data)
+				DX.ajax_method({
+					'type': 'POST',
+					'data': list,
+					'url': '/prod/xmachine/add',
+					'callBack': function(res) {
+						if (res.code == 200) {
+							DX.optionTitle()
+							DX.domParent('vm.getDevice(2)')
+							DX.closeModal()
+						}
+					},
+				});
+			},
+			getDevice: function() {
+				var that = this;
+				DX.ajax_method({
+					'type': 'GET',
+					'param': {
+						xjobId: that.xjobId,
+						xwbsId: that.xwbsId
+					},
+					'url': '/prod/xmachine/list/by/xjob',
+					'callBack': function(res) {
+						if (res.code == 200) {
+							if (res.data != []) {
+								$.each(res.data, function(i, v) {
+									that.checklist.push(Number(v.deviceId))
+								})
+							}
+							that.getData()
+						}
+					},
+				});
+			},
+			closeModal: function() {
+				DX.closeModal()
+			},
+
+			getData: function() {
+				$this = this;
+				pages.init({
+					'key': ['deviceName', 'state', 'type','xjobId'],
+					'value': [$this.content, $this.state, $this.type,$this.xjobId],
+					'url': '/prod/xmachine/queryDeviceList',
+					'callBack': function(res) {
+						if (res.code == 200) {
+							$this.list = res.data.list;
+							$.each($this.list, function(i, v) {
+								v.flag = false
+								$.each($this.checklist, function(ii, vv) {
+									if (v.id == vv) {
+										v.flag = true
+									}
+								})
+							})
+							$this.pages = {
+								'pageSize': res.data.pageSize,
+								'pageIndex': res.data.pageNum
+							}
+						}
+					}
+				})
+			},
+			order: function(index) {
+				return this.pages.pageSize * (this.pages.pageIndex - 1) + index + 1;
+			},
+			checkuser: function(v, e) {
+				var $this = this
+				v.flag = !v.flag
+				var pos = $this.checklist.indexOf(v.id)
+				if (pos < 0) {
+					$this.checklist.push(Number(v.id))
+				} else {
+					$this.checklist.splice(pos, 1)
+				}
+			},
+			add: function() {
+				var that = this;
+				var list = []
+				$.each(that.list, function(i, v) {
+					if (that.checklist.indexOf(v.id) >= 0) {
+						list.push({
+							"deviceId": v.id,
+							"deviceName": v.deviceName,
+							"deviceOrigin": v.type,
+							"deviceSpecial": v.state,
+							"deviceType": v.specification,
+							"xjobId": that.xjobId,
+							"xwbsId": that.xwbsId,
+							'deviceUnit':'台'
+						})
+					}
+				})
+				DX.ajax_method({
+					'type': 'POST',
+					'data': list,
+					'url': '/prod/xmachine/add',
+					'callBack': function(res) {
+						if (res.code == 200) {
+							DX.optionTitle()
+							DX.domParent('vm.getDevice(2)')
+							DX.closeModal()
+						}
+					},
+				});
+			}
+		},
+		filters: {
+			stateS: function(val) {
+				if (val == 1) {
+					return '常规设备'
+				} else {
+					return '特种设备'
+				}
+			}
+		}
+	})
+</script>

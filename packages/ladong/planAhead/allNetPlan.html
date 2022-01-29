@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>全网编制计划</title>
+		<link rel="stylesheet" type="text/css" href="../static/css/common.css"/>
+		<style type="text/css">
+			
+		</style>
+	</head>
+	<body>
+		<div style="width: 100%;height: calc(100vh - 20px);overflow: auto;" v-clock class="rightBox">
+			<img src="./setting/img/PlanInfo.png" id="planImg">
+		</div>
+	</body>
+	<script type="text/javascript">
+		var count =100;
+		function pictureImg(){
+			var count =counting();
+			resize();
+			event.stopPropagation();
+			return false;
+		}
+		function counting(){
+			if (event.wheelDelta>=120){
+				if (count+5<=500){
+					count+=5;
+				}
+				
+			}
+			if (event.wheelDelta<=-120){
+				if (count-5 >0){
+					count-=5;
+				}
+			}
+			return count;
+		}
+		function resize(){
+			document.getElementById("planImg").style.zoom=count+"%";
+			document.getElementById("zoomIndex").innerText=count+"%";
+		}
+	</script>
+</html>

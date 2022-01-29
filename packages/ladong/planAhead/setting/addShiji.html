@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../../../static/common.css" />
+		<link rel="stylesheet" type="text/css" href="../../../static/elementui.css" />
+		<style type="text/css">
+			.el-table__empty-block {
+			    min-height: 0;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="constructionPage" v-cloak>
+			<div style="padding: 15px 25px;height: calc(100% - 55px);overflow: auto;">
+				<div>
+					<span>实际量:</span>
+					<input type="text" class="input" style="width: 268px;" placeholder="请输入实际量" v-model="nowShijiliang">
+				</div>
+				<div>
+					<p style="margin: 10px 0;">历史记录：</p>
+					<el-table :data="historyList" border style="width: 100%;margin-top: 10px;">
+						<el-table-column prop="quantityImpl" label="实际量" min-width="30%">
+						</el-table-column>
+						<el-table-column prop="createTime" label="添加时间" min-width="20%">
+						</el-table-column>
+					</el-table>
+				</div>
+				<p style="text-align: center;margin-top: 10px;">
+					<button class="btnBlue" @click="shijiliangSave">保存</button>
+				</p>
+			</div>
+		</div>
+	</body>
+	<script src="../../../static/js/jquery-1.8.3.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/vue.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/elementui.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/dx.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		var vm = new Vue({
+			el: '#constructionPage',
+			data: {
+				nowShijiliang:'',  //输入框中的实际量
+				historyList:[],		//实际量的历史记录列表
+				id:'',
+				parentId:'',
+				shijiId:'',
+				jinchiNum:1,
+				jinchiTime:''
+			},
+			mounted: function() {
+				this.id = DX.getParam('id')
+				this.jinchiNum = DX.getParam('jinchiNum')
+				this.jinchiTime = decodeURI(DX.getParam('jinchiTime'))
+				this.parentId = DX.getParam('parentId')
+				this.shijiId = DX.getParam('shijiId')
+				this.shijiEdit()
+			},
+			methods: {
+				shijiliangSave:function(){
+					var $this = this
+					var url = "/prod/data/collect/add/item/xProNum/multi"
+					var jsonarr = [{
+						'xjobId':$this.id,
+						'xwbsId':$this.parentId,
+						'xprojNumId':$this.shijiId,
+						'quantityImpl':$this.nowShijiliang,
+					}]
+					if(this.jinchiNum==2){
+						url = '/prod/data/collect/makeup/item/xProNum/multi'
+						var jsonarr = [{
+							'xjobId':$this.id,
+							'xwbsId':$this.parentId,
+							'xprojNumId':$this.shijiId,
+							'quantityImpl':$this.nowShijiliang,
+							'sampleTime':$this.jinchiTime
+						}]
+					}
+					DX.ajax_method({
+						'type':"POST",
+						'url':url,
+						'data':jsonarr,
+						'callBack':function(res){
+							if(res.code==200){
+								DX.domParent('vm.getDevice(5)')
+								DX.closeModal()
+								DX.optionTitle()
+							}else{
+								DX.optionTitle(res.msg)
+							}
+						}
+					})
+				},
+				shijiEdit:function(){
+					var $this = this
+					DX.ajax_method({
+						'url':"/prod/data/collect/get/item/xProNum/sample/list",
+						'param':{
+							'xjobId':$this.id,
+							'xProjNum':$this.shijiId,
+							'xwbsId':$this.parentId
+						},
+						'callBack':function(res){
+							if(res.code==200){
+								$this.historyList = res.data
+							}else{
+								DX.optionTitle(res.msg)
+							}
+						}
+					})
+				},
+			},
+		})
+	</script>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../../../static/common.css" />
+		<link rel="stylesheet" type="text/css" href="../../../static/elementui.css" />
+		<style type="text/css">
+			.box {
+				display: flex;
+				flex-direction: column;
+				padding: 10px;
+				background-color: #ffcc99;
+				border-radius: 4px;
+				margin-top: 10px;
+				cursor: pointer;
+			}
+
+			body {
+				background-color: #fff;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="companyIndexPage" v-cloak>
+			<div class="box">
+				<span>
+					{{allList.fullName}}；计划完成时间：{{allList.endTime}}；预计完成时间：{{allList.expectEndTime}}；
+				</span>
+				<!-- <span style="margin-top: 5px;color:#2c94f8;">去处理>></span> -->
+			</div>
+			<div class="box" style="background-color: #f2f2f2;" v-for="v,i in list" @click="open(v)">
+				<span>
+					<span v-if="v.finishStatus==1" style="display: inline-block;padding:1px 3px;color: #fff;background-color:#ff9800;font-size: 12px;border-radius: 2px;margin-right: 5px;">决策</span>
+					<span v-if="v.finishStatus==3" style="display: inline-block;padding:1px 3px;color: #fff;background-color:#2d94f7;font-size: 12px;border-radius: 2px;margin-right: 5px;">实施</span>
+					<span v-if="v.finishStatus==2" style="display: inline-block;padding: 1px 3px;color: #fff;background-color: #1bc088;font-size: 12px;border-radius: 2px;margin-right: 5px;">反馈</span>
+					<span>
+						{{v.taskDescription}}
+					</span>
+				</span>
+				<span style="margin-top: 5px;display: flex;justify-content: space-between;color: #777;">
+					<span>负责人：{{v.userName}} | {{v.userPhone}}</span>
+					<span>发起人：{{v.createUserName}} | {{v.createUserPhone}}</span>
+				</span>
+			</div>
+			<p style="color: #3798f6;margin-top: 10px;cursor: pointer;" @click="goAdd">添加处置措施>></p>
+		</div>
+	</body>
+	<script src="../../../static/js/jquery-1.8.3.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/vue.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/elementui.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/dx.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		var vm = new Vue({
+			el: '#companyIndexPage',
+			data: function() {
+				return {
+					list: [],
+					partId: '',
+					allList:''
+				}
+			},
+			mounted: function() {
+				this.partId = DX.getParam('id')
+				// this.partId = 'cfaf92ad23404cf9b25a7b49b97a9bd5'
+				this.getdata()
+				this.findById()
+			},
+			methods: {
+				findById() {
+					var $this = this
+					DX.ajax_method({
+						'url': '/prod/xact/by/id',
+						'param': {
+							id: $this.partId
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.allList = res.data
+							} else {
+								DX.optionTitle(res.msg);
+							}
+						}
+					})
+				},
+				getdata: function() {
+					var $this = this
+					DX.ajax_method({
+						'type': 'GET',
+						'param': {
+							'partId': $this.partId
+						},
+						'url': '/prod/dispose/warning/get/disposewarn/info',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.list = res.data.warningInfo
+							}
+						},
+					});
+				},
+				goAdd: function() {
+					window.location.href = 'warnAdd.html?partId=' + this.partId
+				},
+				open: function(v) {
+					if(!v.isMySelf){
+						DX.optionTitle('不是本人，不可结束任务')
+						return
+					}
+					var $this = this
+					$this.$confirm('任务完成请点击完成按钮', '预警处理', {
+						confirmButtonText: '确定',
+						cancelButtonText: '取消',
+					}).then(() => {
+						DX.ajax_method({
+							'type': 'POST',
+							'param': {
+								'id': v.id
+							},
+							'url': '/prod/dispose/warning/push/dispose/status',
+							'callBack': function(res) {
+								if (res.code == 200) {
+									DX.optionTitle('操作成功')
+								}
+							}
+						});
+					}).catch(() => {
+					
+					});
+				}
+			},
+			watch: {},
+		})
+	</script>
+</html>

@@ -1,0 +1,1767 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../../../static/common.css" />
+		<link rel="stylesheet" type="text/css" href="../../../static/component.css" />
+		<link rel="stylesheet" type="text/css" href="../../../static/tableFont.css" />
+		<link rel="stylesheet" type="text/css" href="../../../static/elementui.css" />
+		<link rel="stylesheet" href="../../../static/ztree/zTreeStyle.css" />
+		<style type="text/css">
+			#companyIndexPage {
+				/* padding: 20px 0; */
+				display: flex;
+				margin: -1px 0 0 -3px;
+			}
+
+			.left {
+				width: 100%;
+			}
+
+			.right {
+				width: 30%;
+				margin-left: -1px;
+			}
+
+			.el-tabs__nav-wrap::after {
+				height: 1px;
+			}
+
+			.el-tabs__content {
+				padding: 0 10px;
+			}
+
+			body {
+				margin: 0;
+				color: #333;
+				background-color: #fff;
+			}
+
+			.hide {
+				display: none;
+			}
+
+			#backGound {
+				z-index: 9;
+			}
+
+			.el-date-editor .el-range__icon {
+				display: flex;
+				align-items: center;
+			}
+
+			.el-date-editor .el-range-separator {
+				display: flex;
+				align-items: center;
+			}
+
+			.el-date-editor .el-range__close-icon {
+				display: flex;
+				align-items: center;
+			}
+
+			.input,
+			.select {
+				min-width: 0 !important;
+			}
+
+			.winDialog {
+				z-index: 99999;
+			}
+
+			/* 浏览器滚动条样式 */
+			::-webkit-scrollbar {
+				width: 9px;
+				height: 9px;
+			}
+
+			::-webkit-scrollbar-track {
+				background: rgba(0, 0, 0, .1);
+				border-radius: 8px;
+			}
+
+			::-webkit-scrollbar-thumb {
+				background: rgb(201, 201, 202);
+				border-radius: 8px;
+			}
+
+			::-webkit-scrollbar-thumb:hover {
+				background: rgb(162, 162, 163);
+			}
+
+			.el-tabs__item {
+				height: 45px;
+				line-height: 45px;
+			}
+
+			.el-date-range-picker {
+				width: 505px !important;
+			}
+
+			.el-collapse-item__header {
+				font-weight: bold;
+			}
+
+			.el-table__empty-block {
+				min-height: 0;
+			}
+
+			.el-collapse-item__wrap {
+				padding-bottom: 10px;
+			}
+
+			.el-collapse-item__header {
+				background: #ebeef5;
+				margin-bottom: 5px;
+				padding: 0 5px;
+			}
+
+			.topSel .el-input__inner {
+				border: none !important;
+				width: 120px;
+				background: transparent;
+				text-align: right;
+			}
+			.topSel{
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 0 5px;
+				background: #ebeef5;
+				margin-bottom: 5px;
+				height: 31px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="companyIndexPage" v-cloak>
+			<div class="left" style="height:100vh;">
+				<el-tabs v-model="activeNameLeft" @tab-click="handleClickLeft" :stretch="true">
+					<el-tab-pane label="要素计划/写实" name="one">
+						<div class="topSel">
+							<span style="font-weight: bold;">采集明细</span>
+							<div>
+								<el-select @change="changeselGongxu"  v-model="selGongxu" placeholder="请选择工序">
+									<el-option v-for="item,i in allGxList" :key="i" :label="item.partName" :value="item.id">
+									</el-option>
+								</el-select>
+							</div>
+						</div>
+						<div class="topSel">
+							<span style="font-weight: bold;">选择工序</span>
+							<div>
+								<el-select @change="changeselGongxu"  v-model="selGongxu" placeholder="请选择工序">
+									<el-option v-for="item,i in allGxList" :key="i" :label="item.partName" :value="item.id">
+									</el-option>
+								</el-select>
+							</div>
+						</div>
+						<el-collapse v-model="activeName">
+							<el-collapse-item title="WBS" name="1">
+								<div
+									style="background: #F2F4F7;border-radius: 4px;display: flex;flex-direction: column;padding: 15px;">
+									<span
+										style="font-size: 14px;color: #419DF4;font-weight: bold;">{{allList.partName}}</span>
+									<span style="margin-top: 5px;">{{allList.fullName}}</span>
+								</div>
+							</el-collapse-item>
+							<el-collapse-item title="OBS" name="2"
+								v-if="allList.partName!='施工准备'&&allList.partName!='施工完成'">
+								<p style="font-weight: bold;display: flex;justify-content: flex-end;align-items: center;"
+									v-if="jinchiNum!=2">
+									<span style="display: inline-block;color: #009688;font-weight: 400;cursor: pointer;"
+										@click="addObs">
+										<zj-icon-button icon-class="fa fa-plus-square" tip="新增"></zj-icon-button>
+									</span>
+								</p>
+								<div style="background: #F2F4F7;border-radius: 4px;display: flex;padding: 15px;align-items: center;justify-content: space-between;margin-top: 5px;"
+									v-for="v,i in obsList" :key="i">
+									<span style="display: flex;flex-direction: column;color: #777777;">
+										<span style="font-size: 14px;color: #333;font-weight: bold;">{{v.name}}</span>
+										<span style="margin-top: 5px;">
+											<span>{{v.departName}} | </span>
+											<span>{{v.jobName}} | </span>
+											<span>{{v.phone}}</span>
+										</span>
+									</span>
+									<img @click="delObs(v)" v-if="jinchiNum!=2"
+										style="width: 15px;height: 15px;cursor: pointer;" src="../img/del.png">
+								</div>
+							</el-collapse-item>
+							<el-collapse-item title="TBS" name="3"
+								v-if="allList.partName!='施工准备'&&allList.partName!='施工完成'">
+								<p style="font-weight: bold;display: flex;justify-content: flex-end;align-items: center;"
+									v-if="jinchiNum!=2">
+									<!-- <span>TBS</span> -->
+									<span style="display: inline-block;color: #009688;font-weight: 400;cursor: pointer;"
+										@click="addTbs(1)">
+										<zj-icon-button icon-class="fa fa-plus-square" tip="新增"></zj-icon-button>
+									</span>
+								</p>
+								<div style="background: #F2F4F7;border-radius: 4px;display: flex;padding: 15px;align-items: center;justify-content: space-between;margin-top: 5px;"
+									v-for="v,i in tbsList" :key="i +'a'">
+									<span style="display: flex;flex-direction: column;color: #777777;">
+										<span
+											style="font-size: 14px;color: #333;font-weight: bold;">{{v.builderName}}</span>
+										<span style="margin-top: 5px;">
+											<span>{{v.builderPrincipal}} | </span>
+										</span>
+									</span>
+									<img @click="delTbs(v)" v-if="jinchiNum!=2"
+										style="width: 15px;height: 15px;cursor: pointer;" src="../img/del.png">
+								</div>
+							</el-collapse-item>
+							<el-collapse-item title="施工时间" name="4">
+								<div v-if="jinchiNum==1">
+									<p
+										style="font-weight: bold;display: flex;justify-content: flex-end;align-items: center;">
+										<span
+											style="display: inline-block;color: #009688;font-weight: 400;cursor: pointer;"
+											@click="down">
+											<zj-icon-button icon-class="fa fa-check-circle" tip="施工完成"></zj-icon-button>
+										</span>
+										<span
+											style="display: inline-block;color: #009688;font-weight: 400;cursor: pointer;"
+											@click="updateTime">
+											<zj-icon-button icon-class="fa fa-save" tip="保存"></zj-icon-button>
+										</span>
+									</p>
+									<div style="color: #797979;">
+									</div>
+									<div style="color: #797979;margin-top: 10px;">
+										<span>
+											<span>计划开始时间：</span>
+											<el-date-picker value-format="yyyy-MM-dd HH:mm:ss"
+												v-model="newChangrStartTime" align="right" type="datetime"
+												placeholder="选择计划开始时间" @change="changeTime(1)"></el-date-picker>
+										</span>
+									</div>
+									<div style="color: #797979;margin-top: 10px;">
+										<span>
+											<span>计划结束时间：</span>
+											<el-date-picker value-format="yyyy-MM-dd HH:mm:ss"
+												v-model="newChangrEndTime" align="right" type="datetime"
+												placeholder="选择计划结束时间" @change="changeTime(2)"></el-date-picker>
+										</span>
+									</div>
+									<div style="color: #797979;margin-top: 10px;">
+										<span>
+											<span>作业工时：</span>
+											<span v-if="allList.expectStartTime==''">无</span>
+											<span v-else>{{workTime}}（小时）</span>
+										</span>
+									</div>
+									<div style="color: #797979;margin-top: 10px;">
+										<span>
+											<span>预测时间：</span>
+											<span>{{allList.expectStartTime}}-{{allList.expectEndTime}}</span>
+										</span>
+									</div>
+									<div style="color: #797979;margin-top: 10px;">
+										<span>
+											<span>实际时间：</span>
+											<span>{{allList.sjStartTime}}-{{allList.sjEndTime}}</span>
+										</span>
+									</div>
+								</div>
+								<div v-if="jinchiNum==2">
+									<div style="color: #797979;margin-top: 10px;margin-left: 15px;">
+										<span>
+											<span>进尺量采集时间：</span>
+											<span>{{jinchiTime}}</span>
+										</span>
+									</div>
+									<div style="color: #797979;margin-left: 15px;">
+										<span>
+											<span>施工开始时间：</span>
+											<span>{{jinchiStartTime}}</span>
+										</span>
+									</div>
+									<div style="color: #797979;margin-left: 15px;">
+										<span>
+											<span>施工结束时间：</span>
+											<span>{{jinchiEndTime}}</span>
+										</span>
+									</div>
+								</div>
+								<div v-if="jinchiNum==3">
+									<div style="color: #797979;margin-top: 10px;margin-left: 15px;">
+										<span>
+											<span>月进度指标：</span>
+											<input id="" class="input" @blur="updateZB" v-model="yuejinduzhibiao" />
+										</span>
+									</div>
+								</div>
+							</el-collapse-item>
+							<el-collapse-item title="工程量" name="5"
+								v-if="allList.partName!='施工准备'&&allList.partName!='施工完成'&&jinchiNum!=3">
+								<p
+									style="font-weight: bold;display: flex;justify-content: flex-end;align-items: center;">
+									<!-- <span>工程量</span> -->
+									<span>
+										<span
+											style="display: inline-block;color:#009688;font-weight: 400;cursor: pointer;"
+											@click="updateWorkContent">
+											<zj-icon-button icon-class="fa fa-edit" tip="编辑"></zj-icon-button>
+										</span>
+									</span>
+								</p>
+								<table class="table tableHover mt10 " id="table" style="table-layout: fixed;">
+									<thead>
+										<tr>
+											<th>数量名称</th>
+											<th>单位</th>
+											<th>合同量</th>
+											<th>变更量</th>
+											<th>复核量</th>
+											<th>交底量</th>
+											<th>采集量</th>
+											<th>实际量操作</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr v-for="v,i in quantitiesList" :key="i">
+											<td>{{v.name}}</td>
+											<td>{{v.unit}}</td>
+											<td><input class="tableEdit" v-model="v.quantityDesign"
+													@blur="updateQuantities(1,v)" /></td>
+											<td><input class="tableEdit" v-model="v.quantityAlter"
+													@blur="updateQuantities(2,v)" /></td>
+											<td><input class="tableEdit" v-model="v.quantityReview"
+													@blur="updateQuantities(3,v)" /></td>
+											<td><input class="tableEdit"
+													v-model="v.quantityJiaodi=='' ? v.quantityDesign + v.quantityAlter : v.quantityJiaodi"
+													@blur="updateQuantities(4,v)" /></td>
+											<td>{{v.quantityImpl}}</td>
+											<td>
+												<zj-icon-button icon-class="fa fa-edit" @click="shijiEdit(v.id)"
+													tip="操作"></zj-icon-button>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</el-collapse-item>
+							<el-collapse-item title="用工数量" name="6"
+								v-if="allList.partName!='施工准备'&&allList.partName!='施工完成'&&jinchiNum!=3">
+								<p style="display: flex;justify-content: flex-end;align-items: center;">
+									<!-- <span style="font-weight: bold;">用工数量：</span> -->
+									<span style="color: #009688;cursor: pointer;" @click="addTbs(2)">
+										<zj-icon-button icon-class="fa fa-plus-square" tip="新增"></zj-icon-button>
+									</span>
+								</p>
+								<div style="background-color: #f2f2f2;padding: 6px;margin-top: 6px;"
+									v-for="val,inx in yonggongList" :key="inx+'a'">
+									<div style="display: flex;justify-content: space-between;">
+										<span>
+											<span>作业队伍：</span>
+											<span>{{val.teamName}}
+												<span>({{val.contactsName}} {{val.contactsPhone}})</span>
+											</span>
+										</span>
+										<img v-show="!val.delEnter" @mouseenter="changeDel(inx,1)"
+											style="width: 12px;height: 13px;" src="./img/delBlack.png">
+										<img @click="delYongGong(val)" v-show="val.delEnter"
+											@mouseleave="changeDel(inx,2)"
+											style="width: 12px;height: 13px;cursor: pointer;" src="./img/delRed.png">
+									</div>
+									<div style="display: flex;justify-content: space-between;" class="mt10">
+										<span>
+											<span>施工人数：</span>
+											<input class="input" @blur="modYongGong(val)" v-model="val.quantity"
+												placeholder="参与施工人数" />
+										</span>
+									</div>
+								</div>
+							</el-collapse-item>
+							<el-collapse-item title="材料" name="7"
+								v-if="allList.partName!='施工准备'&&allList.partName!='施工完成'&&jinchiNum!=3">
+								<p style="display: flex;justify-content: flex-end;align-items: center;">
+									<!-- <span style="font-weight: bold;">材料：</span> -->
+									<span style="color: #009688;cursor: pointer;" @click="openCailiao">
+										<zj-icon-button icon-class="fa fa-plus-square" tip="选择材料"></zj-icon-button>
+									</span>
+								</p>
+								<el-table :data="cailiaoList" border style="width: 100%;margin-top: 10px;">
+									<el-table-column prop="materialName" label="材料名称" min-width="20%">
+									</el-table-column>
+									<el-table-column prop="materialModelName" label="规格型号" min-width="20%">
+									</el-table-column>
+									<el-table-column prop="materialUnit" label="单位" min-width="20%">
+									</el-table-column>
+									<el-table-column prop="quantityDesign" label="交底量" min-width="10%">
+										<!-- 	<template slot-scope="obj">
+											<input class="input tableEdit" style="width: 100%;height: 100%;border: none;outline: none;" v-model="obj.row.quantityDesign" @blur="changeDesign(obj.row)" />
+										</template> -->
+									</el-table-column>
+									<el-table-column prop="quantityImpl" label="实际量" min-width="10%">
+										<template slot-scope="obj">
+											<span v-if="obj.row.id!=''">{{obj.row.quantityImpl}}</span>
+											<input v-else class="input tableEdit"
+												style="width: 100%;height: 100%;border: none;outline: none;"
+												v-model="obj.row.quantityImpl" @blur="changeImpl(obj.row)" />
+										</template>
+									</el-table-column>
+									<!-- <el-table-column label="操作" min-width="10%">
+										<template slot-scope="scope">
+											<zj-icon-button icon-class="fa fa-trash-alt" @click="delCai(scope.row,scope.$index)" tip="删除"></zj-icon-button>
+										</template>
+									</el-table-column> -->
+								</el-table>
+							</el-collapse-item>
+							<el-collapse-item title="机械" name="8"
+								v-if="allList.partName!='施工准备'&&allList.partName!='施工完成'&&jinchiNum!=3">
+								<p style="display: flex;justify-content: flex-end;align-items: center;">
+									<!-- <span style="font-weight: bold;">机械：</span> -->
+									<span style="color: #009688;cursor: pointer;" @click="goDevicce">
+										<zj-icon-button icon-class="fa fa-plus-square" tip="新增"></zj-icon-button>
+									</span>
+								</p>
+								<el-table :data="deviceList" border style="width: 100%;margin-top: 10px;">
+									<el-table-column prop="deviceName" label="设备名称" min-width="30%">
+									</el-table-column>
+									<el-table-column prop="deviceType" label="规格型号" min-width="20%">
+									</el-table-column>
+									<el-table-column prop="" label="单位" min-width="20%">
+										<template slot-scope="obj">
+											<span>台</span>
+										</template>
+									</el-table-column>
+									<el-table-column label="操作" min-width="20%">
+										<template slot-scope="scope">
+											<zj-icon-button icon-class="fa fa-trash-alt"
+												@click="delDe(scope.row,scope.$index)" tip="删除"></zj-icon-button>
+										</template>
+									</el-table-column>
+								</el-table>
+							</el-collapse-item>
+							<el-collapse-item title="其他" name="9" v-if="jinchiNum!=3">
+								<p style="display: flex;justify-content: flex-end;align-items: center;">
+									<span style="color: #009688;cursor: pointer;" @click="openAddQita">
+										<zj-icon-button icon-class="fa fa-plus-square" tip="新增"></zj-icon-button>
+									</span>
+								</p>
+								<div style="padding: 10px;background-color: #fff;border-radius: 4px;box-shadow:0 0 9px #e6e1e1;color: #5e5e5e;margin: 5px 10px 10px;"
+									v-for="v,i in qitaList" :key="i">
+									<div
+										style="border-bottom: 1px solid #aaa;font-size: 15px;font-weight: bold;padding-bottom: 5px;color: #333;">
+										{{v.commitName}}录入
+									</div>
+									<div style="display: flex;flex-direction: column;">
+										<span style="margin: 5px 0;">{{v.content}}</span>
+										<span>{{v.commitTime}}</span>
+									</div>
+								</div>
+							</el-collapse-item>
+						</el-collapse>
+					</el-tab-pane>
+					<el-tab-pane label="待办事项" name="two">
+						<p style="margin-bottom: 5px;">
+							<span style="color:#1e90ff;">【提醒】</span>
+							<span>2020/10/9计划滞后</span>
+						</p>
+						<p style="margin-bottom: 5px;">
+							<span style="color:#ff9999;">【计划】</span>
+							<span>2020/10/9计划滞后</span>
+						</p>
+					</el-tab-pane>
+					<el-tab-pane label="工作流程" name="three">
+						工作流程
+					</el-tab-pane>
+				</el-tabs>
+			</div>
+			</div>
+		</div>
+	</body>
+	<script src="../../../static/js/jquery-1.8.3.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/vue.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/elementui.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/dx.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript" src="../../../static/ztree/jquery.ztree.all.min.js"></script>
+	<script src="../../../static/js/component.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/componentOne.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/componentTwo.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		var vm = new Vue({
+			el: '#companyIndexPage',
+			data: function() {
+				return {
+					activeNameLeft: 'one',
+					delEnter: true, //鼠标移入后删除键变色
+					delRed: true, //删除人
+					id: '', //工序的id
+					//第一栏，修改计划时间。
+					planStartTimeDate: '',
+					planEndTimeDate: '',
+					planStartTimeHour: '',
+					planEndTimeHour: '',
+					workTime: '', //作业工时
+					parentId: '',
+					obsList: [],
+					tbsList: [],
+
+					param4: {
+						width: 500,
+						height: 650,
+						title: "添加责任人",
+					},
+					hide4: true,
+					list: [], //点部位下所有工序list
+					twoTime: [new Date(), new Date()],
+					cailiaoList: [{
+						materialName: '钢筋',
+						modelName: '圆钢',
+						unit: '根',
+						amount: '20',
+					}], //材料组
+					GongList: {
+						jobName: '钢筋',
+						unit: '根',
+						amount: '20',
+					},
+					src: 0,
+					allList: [],
+					deviceList: [{
+						deviceName: '搅拌机',
+						deviceType: '搅拌机',
+						quantityPlan: '5',
+					}],
+					yonggongList: [],
+					quantitiesList: [],
+
+					paramWorkContent: { //添加工作内容弹窗
+						width: 500,
+						height: 420,
+						title: "添加工序内容",
+					},
+					hideAddModal: true,
+					teamList: [], //班组类型列表
+					departmentList: [], //部门类型列表
+					departmentId: '', //管理部门id
+					departmentName: '', //管理部门名称
+					isHaveNumb: 0, //是否数量
+					isHaveSubitem: 0, //是否分项
+					teamTypeId: '', //班组类型id
+					teamTypeName: '', //班组类型名称
+					unitName: '', //单位
+					workName: '', //工作内容名称
+					updateId: 0,
+					workNumTypeList: [],
+					checkList: [],
+					nowShijiliang: '', //输入框中的实际量
+					historyList: [], //实际量的历史记录列表
+					shijiliangVal: '', //编辑实际量时目前的部位
+					param5: {
+						width: 500,
+						height: 400,
+						title: "编辑实际量",
+					},
+					hide5: true,
+					activeName: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
+					dialogVisible: false, //添加其他的弹框
+					qitaList: [], // 其他
+					newChangrStartTime: '', //计划开始
+					newChangrEndTime: '', //计划结束
+					newupdateTime: '',
+					jinchiNum: 1, //是否是隧道进尺，1不是，2是
+					jinchiTime: '',
+					yuejinduzhibiao: '',
+					buildSixStatus: '', //六级部位状态
+					selGongxu: '',
+					allGxList:[]
+				}
+			},
+			mounted: function() {
+				this.id = DX.getParam('id')
+				this.selGongxu = this.id
+				this.jinchiTime = decodeURI(DX.getParam('jinchiTime'))
+				this.buildSixStatus = decodeURI(DX.getParam('buildSixStatus'))
+				this.jinchiNum = DX.getParam('num')
+				this.parentId = DX.getParam('parentId')
+				this.activeNameLeft = DX.getParam('type') ? DX.getParam('type') : 'one'
+				this.findById()
+				this.getGongxu()
+				this.getGongcheng()
+				this.getByContentId()
+				this.getDepartment()
+				this.getTeamtype()
+				this.queryWorkContent()
+				this.getCaiLiao()
+				this.getDevice()
+				this.getYongGongCount()
+				this.newGetObs()
+				this.getObsTbs()
+				this.getQitaList()
+				if (this.jinchiNum == 3) {
+					this.getYuejdzb()
+				} else if (this.jinchiNum == 2) {
+					this.jinchiStartTime = decodeURI(DX.getParam('jinchiStartTime'))
+					this.jinchiEndTime = decodeURI(DX.getParam('jinchiEndTime'))
+				}
+			},
+			methods: {
+				changeselGongxu: function(val) {
+					this.id = val
+					this.findById()
+					this.getGongxu()
+					this.getGongcheng()
+					this.getByContentId()
+					this.getDepartment()
+					this.getTeamtype()
+					this.queryWorkContent()
+					this.getCaiLiao()
+					this.getDevice()
+					this.getYongGongCount()
+					this.newGetObs()
+					this.getObsTbs()
+					this.getQitaList()
+				},
+				updateZB: function() {
+					var $this = this
+					DX.ajax_method({
+						'url': "/algp/xact/modifyXWbsProcessIndicator",
+						'type': 'POST',
+						'param': {
+							"id": $this.parentId,
+							'processIndicator': $this.yuejinduzhibiao
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle()
+							} else {
+								DX.optionTitle(res.msg)
+							}
+						}
+					})
+				},
+				getYuejdzb: function() {
+					var $this = this
+					DX.ajax_method({
+						'url': "/algp/xact/details",
+						'param': {
+							"ids": $this.parentId,
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.yuejinduzhibiao = res.data[$this.parentId].processIndicator
+							} else {
+								DX.optionTitle(res.msg)
+							}
+						}
+					})
+				},
+				changeTime: function(num) {
+					var that = this;
+					var planStartTime = that.allList.startTime
+					var planEndTime = that.allList.endTime
+					if (num == 1) { //开始
+						if (planEndTime == '') {
+							planEndTime = planStartTime
+						}
+						var oDate1 = new Date(that.newChangrStartTime); //开始
+						var oDate2 = new Date(planEndTime);
+						if (oDate1.getTime() > oDate2.getTime()) {
+							DX.optionTitle('开始时间不可大于结束时间')
+							return false; //第一个大
+						}
+					} else { //结束
+						if (planStartTime == '') {
+							planStartTime = planEndTime
+						}
+						var oDate1 = new Date(that.newChangrEndTime); //结束
+						var oDate2 = new Date(planStartTime);
+						if (oDate1.getTime() < oDate2.getTime()) {
+							DX.optionTitle('开始时间不可大于结束时间')
+							return false; //第一个大
+						}
+					}
+					// DX.ajax_method({
+					// 	'type': 'POST',
+					// 	'param': {
+					// 		'nodeId': that.allList.id,
+					// 		'planStartTime': num == 1 ? that.newChangrStartTime : planStartTime,
+					// 		'planEndTime': num == 2 ? that.newChangrEndTime : planEndTime,
+					// 		'preNodeIdListStr': null
+					// 	},
+					// 	'url': '/timenetwork/plan/changePlanNode',
+					// 	'callBack': function(res) {
+					// 		if (res.code == 200) {
+					// 			DX.optionTitle()
+					// 		}
+					// 	},
+					// });
+					if (num == 1) {
+						DX.ajax_method({
+							'type': 'POST',
+							'param': {
+								'id': that.allList.id,
+								'planStartTime': num == 1 ? that.newChangrStartTime : planStartTime,
+							},
+							'url': '/algp/plan/modifyXjobPlanStartTime',
+							'callBack': function(res) {
+								if (res.code == 200) {
+									DX.optionTitle()
+									DX.domParent('vm.getGongxu()')
+								}
+							},
+						});
+					} else {
+						DX.ajax_method({
+							'type': 'POST',
+							'param': {
+								'id': that.allList.id,
+								'planEndTime': num == 2 ? that.newChangrEndTime : planEndTime,
+							},
+							'url': '/algp/plan/modifyXjobPlanEndTime',
+							'callBack': function(res) {
+								if (res.code == 200) {
+									DX.optionTitle()
+									DX.domParent('vm.getGongxu()')
+								}
+							},
+						});
+					}
+				},
+				changeDesign: function(v) {
+					var $this = this
+					DX.ajax_method({
+						'url': "/prod/xmaterial/addOrUpdate",
+						'type': 'POST',
+						'data': [{
+							"xwbsId": $this.parentId,
+							"xjobId": $this.id,
+							"scaleId": v.scaleId,
+							"quantityDesign": Number(v.quantityDesign),
+							"quantityImpl": Number(v.quantityImpl)
+						}],
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle()
+								$this.getCaiLiao()
+							} else {
+								DX.optionTitle(res.msg)
+							}
+						}
+					})
+				},
+				changeImpl: function(v) {
+					var $this = this
+					var url = "/prod/xmaterial/batchAdd"
+					var arr = [{
+						'materialId': v.materialId,
+						'materialModelId': v.materialModelId,
+						"quantityDesign": v.quantityDesign,
+						"quantityImpl": v.quantityImpl,
+						"xwbsId": $this.parentId,
+						"xjobId": $this.id,
+						'xprojNumId': v.xprojNumId
+					}]
+					if (this.jinchiNum == 2) {
+						url = '/prod/xmaterial/supplement'
+						arr = [{
+							'materialId': v.materialId,
+							'materialModelId': v.materialModelId,
+							"quantityDesign": v.quantityDesign,
+							"quantityImpl": v.quantityImpl,
+							"xwbsId": $this.parentId,
+							"xjobId": $this.id,
+							'xprojNumId': v.xprojNumId,
+							'sampleTime': $this.jinchiTime
+						}]
+					}
+					DX.ajax_method({
+						'url': url,
+						'type': 'POST',
+						'data': arr,
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle()
+								$this.getCaiLiao()
+							} else {
+								DX.optionTitle(res.msg)
+							}
+						}
+					})
+				},
+				openCailiao: function() {
+					DX.open('./addCailiao.html?id=' + this.id + '&parentId=' + this.parentId + '&jinchiNum=' +
+						this.jinchiNum + '&jinchiTime=' + encodeURI(this.jinchiTime), {
+							title: '选择材料',
+							width: 500,
+							height: 500
+						})
+				},
+				getQitaList: function() {
+					var $this = this
+					DX.ajax_method({
+						'param': {
+							'xjobId': $this.id,
+							'parentId': $this.parentId,
+						},
+						'url': "/prod/data/collect/get/item/memo/list",
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.qitaList = res.data
+							} else {
+								DX.optionTitle(res.msg)
+							}
+						}
+					})
+				},
+				handleClose: function() { //
+					var $this = this
+					this.dialogVisible = false
+				},
+				openAddQita: function() { //添加其他
+					DX.open('./addQita.html?id=' + this.id + '&parentId=' + this.parentId, {
+						title: '新增其他条目',
+						width: 400,
+						height: 250
+					})
+				},
+				down: function() { //施工完成
+					var $this = this
+					if (this.buildSixStatus != 1) {
+						DX.optionTitle('无法执行该操作')
+						return
+					}
+					DX.ajax_method({
+						'type': "POST",
+						'url': "/prod/data/collect/finish/xJob?xJobId=" + $this.id,
+						'callBack': function(res) {
+							if (res.code == 200) {
+								var str = ''
+								if (res.data != '') {
+									$.each(res.data, function(i, v) {
+										str += '<p>' + v.pathname + v.name + '部位预警等级为' + v
+											.warnLevel + '级；</p>'
+									})
+									str += '<p>请关注协调生产安排，以免延期</p>'
+									$this.$message({
+										dangerouslyUseHTMLString: true,
+										message: str,
+										type: 'success',
+										duration: 5000
+									});
+									$('body', window.top.document).find('#message').addClass("newTip")
+								}
+								DX.domParent('vm.getGongxu()')
+							} else {
+								DX.optionTitle(res.msg)
+							}
+						}
+					})
+				},
+				delDe: function(val) {
+					var $this = this
+					var y = confirm('确认删除吗？')
+					if (y) {
+						DX.ajax_method({
+							'type': "POST",
+							'url': "/prod/xmachine/delete",
+							'param': {
+								'ids': [val.id]
+							},
+							'callBack': function(res) {
+								if (res.code == 200) {
+									$this.getDevice()
+								} else {
+									DX.optionTitle(res.msg)
+								}
+							}
+						})
+					}
+				},
+				delCai: function(val) { //删除材料
+					var $this = this
+					var y = confirm('确认删除吗？')
+					if (y) {
+						DX.ajax_method({
+							'type': "POST",
+							'url': "/prod/xmaterial/delete",
+							'param': {
+								'ids': [val.id]
+							},
+							'callBack': function(res) {
+								if (res.code == 200) {
+									$this.getCaiLiao()
+								} else {
+									DX.optionTitle(res.msg)
+								}
+							}
+						})
+					}
+				},
+				shijiliangSave: function() {
+					var $this = this
+					DX.ajax_method({
+						'type': "POST",
+						'url': "/prod/data/collect/add/item/xProNum/multi",
+						'data': [{
+							'xjobId': $this.id,
+							'xwbsId': $this.parentId,
+							'xprojNumId': $this.shijiliangVal.id,
+							'quantityImpl': $this.nowShijiliang,
+						}],
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.shijiEdit($this.shijiliangVal)
+								$this.getGongcheng()
+								$this.closeModal()
+								DX.optionTitle()
+							} else {
+								DX.optionTitle(res.msg)
+							}
+						}
+					})
+				},
+				shijiEdit: function(id) {
+					DX.open('./addShiji.html?id=' + this.id + '&parentId=' + this.parentId + '&shijiId=' + id +
+						'&jinchiNum=' + this.jinchiNum + '&jinchiTime=' + encodeURI(this.jinchiTime), {
+							title: '编辑实际量',
+							width: 400,
+							height: 400
+						})
+					return
+					this.hide5 = false
+					var $this = this
+					$this.shijiliangVal = val
+					DX.ajax_method({
+						'url': "/prod/data/collect/get/item/xProNum/sample/list",
+						'param': {
+							'xjobId': $this.id,
+							'xProjNum': val.id
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.historyList = res.data
+							} else {
+								DX.optionTitle(res.msg)
+							}
+						}
+					})
+				},
+				// 查询右侧工作内容
+				queryWorkContent: function() {
+					var $this = this
+					$this.list = []
+					DX.ajax_method({
+						'url': "/wbsp/xjob/list",
+						'param': {
+							'parentId': $this.parentId
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.list = res.data
+								// $this.getDepartment()
+								$this.height = ($this.list.length + 1) * 29 + 1
+								setTimeout(function() {
+									$.each($this.list, function(i, v) {
+										$.each($this.departmentList, function(ii,
+											vv) {
+											if ($this.departmentList[ii]
+												.deId == $this.list[i]
+												.obsGroup) {
+												$this.$set($this.list[i],
+													'obsName', $this
+													.departmentList[ii]
+													.departName)
+											}
+										})
+									})
+									$.each($this.list, function(i, v) {
+										$.each($this.teamList, function(ii, vv) {
+											if ($this.teamList[ii].cid ==
+												$this.list[i].tbsGroup) {
+												$this.$set($this.list[i],
+													'tbsName', $this
+													.teamList[ii].cname)
+											}
+										})
+									})
+								}, 100)
+							} else {
+								DX.optionTitle(res.msg)
+							}
+						}
+					})
+				},
+				// 添加工作内容保存
+				saveWorkContent: function() {
+					var $this = this
+					if (!this.workName) {
+						DX.optionTitle('请填写工序名称')
+						return
+					}
+					this.teamTypeName = $(".selectTeam").find("option:selected").text()
+					this.departmentName = $(".selectDepart").find("option:selected").text()
+					$.each(this.workNumTypeList, function(i, v) {
+						v.orderNumber = i + 1
+						if ($this.workNumTypeList.length == 1 && !v.name) {
+							$this.workNumTypeList = []
+						}
+						if (v.rebarCode) {
+							if (v.rebarCode.charAt(0) !== "G") {
+								v.rebarCode = 'G' + v.rebarCode
+							}
+						}
+						if (v.concreteCode) {
+							if (v.concreteCode.charAt(0) !== "T") {
+								v.concreteCode = 'T' + v.concreteCode
+							}
+						}
+					})
+					DX.ajax_method({
+						'url': '/prod/xjob/add',
+						'type': 'POST',
+						'data': {
+							'obsGroup': $this.departmentId ? $this.departmentId : '',
+							'orderNumber': $this.treeNode.orderNumber,
+							'parentId': $this.treeNode.id,
+							'tbsGroup': $this.teamTypeId,
+							'split': $this.isHaveSubitem,
+							'name': $this.workName,
+							'projNumDtos': $this.workNumTypeList,
+							'id': $this.ids.length ? $this.ids[$this.ids.length - 1] : ''
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle('操作成功')
+								$('.addWorkContentModal').hide()
+								$this.hideAddModal = true
+								$this.id = $this.treeNode.id
+								$this.queryWorkContent()
+							} else {
+								DX.optionTitle(res.msg)
+							}
+						}
+					})
+				},
+				// 获取班组类型
+				getTeamtype: function() {
+					var $this = this
+					DX.ajax_method({
+						'url': '/eva/group/findTeamType',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.teamList = res.data
+							} else {
+								DX.optionTitle(res.mag)
+							}
+						}
+					})
+				},
+				// 获取管理部门
+				getDepartment: function() {
+					var $this = this
+					DX.ajax_method({
+						'url': '/hrs/dxPart/findProjectDepartments',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.departmentList = res.data
+							} else {
+								DX.optionTitle(res.msg)
+							}
+						}
+					})
+				},
+				// 打开修改弹窗
+				updateWorkContent: function() {
+					DX.open('./addFlux.html?id=' + this.id + '&parentId=' + this.parentId, {
+						title: '工程量',
+						width: 760,
+					})
+					return
+					var $this = this
+					var index = ''
+					$.each($this.list, function(i, v) {
+						if (v.id == $this.id) {
+							index = i
+						}
+					})
+					$('.addWorkContentModal').show()
+					this.updateId = 1
+					this.hideAddModal = false
+					$('.winText')[1].textContent = "修改工序"
+					this.getContentById($this.id, index)
+				},
+				// 修改弹窗回显数据
+				getContentById: function(id, index) {
+					var $this = this
+					$this.workName = this.list[index].name
+					$this.teamTypeId = this.list[index].tbsGroup
+					$this.departmentId = this.list[index].obsGroup
+					$this.orderNumber = $this.list[index].orderNumber
+					$this.id = id
+					if (!$this.list[index].split) {
+						$this.checkList = []
+						$this.isHaveSubitem = 0
+					} else {
+						$this.checkList = ['分项']
+						$this.isHaveSubitem = 1
+					}
+					this.getWorkNumTypeList(id)
+				},
+				// 查询当前工作工程数量类型
+				getWorkNumTypeList: function(id) {
+					var $this = this
+					DX.ajax_method({
+						'url': '/wbsp/xprojnum/list',
+						'param': {
+							'xjobId': id
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								if (!res.data.length) {
+									$this.workNumTypeList = [{}]
+								} else {
+									$this.workNumTypeList = res.data
+								}
+							} else {
+								alert(res.msg)
+							}
+						}
+					})
+				},
+				// 添加工程数量类型
+				addNumberType: function() {
+					this.workNumTypeList.push({})
+				},
+				// 删除工程数量类型
+				deleteNumberType: function(row, index) {
+					var $this = this
+					this.workNumTypeList.splice(index, 1)
+				},
+				// 修改保存
+				saveUpdate: function() {
+					var $this = this
+					if (!this.workName) {
+						DX.optionTitle('请填写工序名称')
+						return
+					}
+					this.teamTypeName = $(".selectTeam").find("option:selected").text()
+					$.each(this.workNumTypeList, function(i, v) {
+						v.orderNumber = i + 1
+						if ($this.workNumTypeList.length == 1 && !v.name) {
+							$this.workNumTypeList = []
+						}
+						if (v.rebarCode) {
+							if (v.rebarCode.charAt(0) !== "G") {
+								v.rebarCode = 'G' + v.rebarCode
+							}
+						}
+						if (v.concreteCode) {
+							if (v.concreteCode.charAt(0) !== "T") {
+								v.concreteCode = 'T' + v.concreteCode
+							}
+						}
+						if (!v.name) {
+							$this.workNumTypeList.splice(i, 1)
+						}
+					})
+					DX.ajax_method({
+						'url': '/prod/xjob/update',
+						'type': 'POST',
+						'data': {
+							'obsGroup': $this.departmentId,
+							'orderNumber': $this.orderNumber,
+							'parentId': $this.parentId,
+							'id': $this.id,
+							'tbsGroup': $this.teamTypeId,
+							'split': $this.isHaveSubitem,
+							'name': $this.workName,
+							'projNumDtos': $this.workNumTypeList
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle('操作成功')
+								$('.addWorkContentModal').hide()
+								$this.hideAddModal = true
+								$this.queryWorkContent()
+							} else {
+								DX.optionTitle(res.msg)
+							}
+						}
+					})
+				},
+				updateQuantities: function(num, val) {
+					var $this = this
+					var obj = {}
+					switch (Number(num)) {
+						case 1:
+							obj = {
+								'quantityCalc': val.quantityCalc,
+								'id': val.id,
+								"jobId": $this.id,
+								"name": val.name,
+								'type': val.type
+							}
+							break;
+						case 2:
+							obj = {
+								'quantityDesign': val.quantityDesign,
+								'id': val.id,
+								"jobId": $this.id,
+								"name": val.name,
+								'type': val.type
+							}
+							break;
+						case 3:
+							obj = {
+								'quantityReview': val.quantityReview,
+								'id': val.id,
+								"jobId": $this.id,
+								"name": val.name,
+								'type': val.type
+							}
+							break;
+						case 4:
+							obj = {
+								'quantityAudit': val.quantityAudit,
+								'id': val.id,
+								"jobId": $this.id,
+								"name": val.name,
+								'type': val.type
+							}
+							break;
+						default:
+							break;
+					}
+					DX.ajax_method({
+						'type': 'POST',
+						'data': obj,
+						'url': '/wbsp/xprojnum/update',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle('修改成功')
+								$this.getGongcheng()
+							}
+						},
+					});
+				},
+				changeDel: function(index, num) {
+					if (num == 1) {
+						this.yonggongList[index].delEnter = true
+					} else {
+						this.yonggongList[index].delEnter = false
+					}
+					this.$forceUpdate()
+				},
+				delYongGong: function(val) {
+					var that = this;
+					var yes = confirm('确定删除吗？')
+					if (yes) {
+						DX.ajax_method({
+							'type': 'POST',
+							'param': {
+								id: val.id,
+							},
+							'url': '/prod/data/collect/delete/item/mamQuantity/byId',
+							'callBack': function(res) {
+								if (res.code == 200) {
+									DX.optionTitle('删除成功')
+									that.getYongGongCount()
+								}
+							},
+						});
+					}
+				},
+				modYongGong: function(val) {
+					var that = this;
+					DX.ajax_method({
+						'type': 'POST',
+						'param': {
+							id: val.id,
+							quantity: val.quantity
+						},
+						'url': '/prod/data/collect/modify/item/manQuantity/byId',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle('修改成功')
+								that.getYongGongCount()
+							}
+						},
+					});
+				},
+				inputBlur: function(val) {
+					var that = this;
+					DX.ajax_method({
+						'type': 'POST',
+						'param': {
+							id: val.id,
+							planAmount: val.quantityPlan
+						},
+						'url': '/prod/xmachine/setPlanAmount',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle('修改成功')
+								that.getDevice()
+							}
+						},
+					});
+				},
+				delDevice: function(val) {
+					var that = this;
+					DX.ajax_method({
+						'type': 'POST',
+						'param': {
+							id: val.id,
+						},
+						'url': '/prod/xmachine/deleteDevice',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle('删除成功')
+								that.getDevice()
+							}
+						},
+					});
+				},
+				goDevicce: function() {
+					DX.open('./addDevice.html?xjobId=' + this.id + '&xwbsId=' + this.parentId, {
+						title: '添加设备',
+						width: 775,
+					})
+				},
+				getDevice: function() {
+					var that = this;
+					DX.ajax_method({
+						'type': 'GET',
+						'param': {
+							xjobId: that.id,
+							xwbsId: that.parentId
+						},
+						'url': '/prod/xmachine/list/by/xjob',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								that.deviceList = res.data
+							}
+						},
+					});
+				},
+				getByContentId: function() { //获取工作内容查询状态
+					var that = this;
+					DX.ajax_method({
+						'type': 'GET',
+						'param': {
+							contentId: that.id
+						},
+						'url': '/count/process/getByContentId',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								var scr = 0;
+								switch (res.data.status + '') {
+									case '-1':
+										that.scr = 0;
+										break;
+									case '0':
+										that.scr = 1;
+										break;
+									case '1':
+										that.scr = 1;
+										break;
+									case '2':
+										that.scr = 1;
+										break;
+									default:
+										that.scr = 0;
+										break;
+								}
+							}
+						},
+					});
+				},
+				getGongshi(v) {
+					if (v == null) {
+						return
+					}
+					var date3 = v[1].getTime() - v[0].getTime() //时间差的毫秒数 
+					//计算出相差小时数
+					var hours = (date3 / (3600 * 1000)).toFixed(1)
+					this.workTime = hours
+				},
+				getGongxu() {
+					var $this = this
+					DX.ajax_method({
+						'param': {
+							'parentId': $this.parentId,
+							'level': 7
+						},
+						'url': '/prod/xact/list/byLevel',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.allGxList = res.data
+								$this.list = res.data
+							}
+						}
+					});
+				},
+				delRedEnter(v) {
+					v.delRed = false
+					this.$forceUpdate()
+				},
+				delRedLeave(v) {
+					v.delRed = true
+					this.$forceUpdate()
+				},
+				delObs(v) {
+					var $this = this
+					DX.ajax_method({
+						'url': '/plancount/obs/jobmanager/person/delete/by/info',
+						'type': 'POST',
+						'param': {
+							uid: v.uid,
+							xJobId: $this.id,
+							departId: v.departId,
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle()
+								$this.getObsTbs()
+							} else {
+								DX.optionTitle(res.msg);
+							}
+						}
+					})
+				},
+				delTbs(v) {
+					var $this = this
+					DX.ajax_method({
+						'url': '/plancount/tbs/jobbuilder/delete/byId',
+						'type': 'POST',
+						'param': {
+							id: v.id,
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.getObsTbs()
+							} else {
+								DX.optionTitle(res.msg);
+							}
+						}
+					})
+				},
+				handleClickLeft(tab, event) {
+					var $this = this
+					if (tab.index == 1) { //查询obs与tbs
+						$this.getObsTbs()
+					} else if (tab.index == 0) {
+						$this.getGongcheng()
+					} else {
+						$this.getCaiLiao()
+						$this.getDevice()
+						$this.getYongGongCount()
+					}
+				},
+				getGongcheng() {
+					var $this = this
+					// DX.ajax_method({
+					// 	'url': '/count/baseInfo/findQtyByJobId',
+					// 	'param': {
+					// 		jobId: $this.id,
+					// 	},
+					// 	'callBack': function(res) {
+					// 		if (res.code == 200) {
+					// 			$this.GongList = res.data
+					// 		} else {
+					// 			DX.optionTitle(res.msg);
+					// 		}
+					// 	}
+					// })
+					var url = '/prod/xact/list/quantities'
+					var obj = {
+						xjobId: $this.id,
+					}
+					if (this.jinchiNum == 2) {
+						url = '/prod/con/image/progress/getCurrentDayQuantities'
+						obj = {
+							xjobId: $this.id,
+							time: $this.jinchiTime
+						}
+					}
+					DX.ajax_method({
+						'url': url,
+						'param': obj,
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.quantitiesList = res.data
+							} else {
+								DX.optionTitle(res.msg);
+							}
+						}
+					})
+				},
+				getYongGongCount: function() {
+					var $this = this
+					DX.ajax_method({
+						'url': '/prod/data/collect/get/item/manQuantity',
+						'param': {
+							xJobId: $this.id,
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.yonggongList = res.data
+								$.each($this.yonggongList, function(i, v) {
+									v.delEnter = false
+								})
+							} else {
+								DX.optionTitle(res.msg);
+							}
+						}
+					})
+				},
+				getCaiLiao() {
+					var $this = this
+					var url = '/prod/xmaterial/list/by/xjobnew'
+					var obj = {
+						xjobId: $this.id,
+					}
+					if (this.jinchiNum == 2) {
+						url = '/prod/con/image/progress/materials'
+						obj = {
+							xjobId: $this.id,
+							time: $this.jinchiTime
+						}
+					}
+					DX.ajax_method({
+						'url': url,
+						'param': obj,
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.cailiaoList = res.data
+							} else {
+								DX.optionTitle(res.msg);
+							}
+						}
+					})
+				},
+				getObsTbs() {
+					var $this = this
+					DX.ajax_method({
+						'url': '/prod/xact/tbs/teams/by/xjob',
+						'param': {
+							xjobId: $this.id,
+							xwbsId: $this.parentId,
+							type: 'tbs'
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.tbsList = res.data.teams
+								$this.newGetObs()
+								$.each($this.tbsList, function(i, v) {
+									v.delRed = true
+								})
+							} else {
+								DX.optionTitle(res.msg);
+							}
+						}
+					})
+				},
+				newGetObs: function() {
+					var $this = this
+					DX.ajax_method({
+						'url': '/prod/xact/tbs/teams/by/xjob',
+						'param': {
+							xjobId: $this.id,
+							xwbsId: $this.parentId,
+							type: 'obs'
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.obsList = res.data.persons
+								$.each($this.obsList, function(i, v) {
+									v.delRed = true
+								})
+							} else {
+								DX.optionTitle(res.msg);
+							}
+						}
+					})
+				},
+				handleClickRight(tab, event) {
+					console.log(tab, event);
+				},
+				findById() {
+					var $this = this
+					DX.ajax_method({
+						'url': '/prod/xact/by/id',
+						'param': {
+							id: $this.id
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.allList = res.data
+								$this.newChangrStartTime = res.data.startTime
+								$this.newChangrEndTime = res.data.endTime
+								$this.parentId = res.data.parentId
+								$this.twoTime = [new Date(res.data.expectStartTime), new Date(res.data
+									.expectEndTime)];
+								$this.workTime = ((new Date(res.data.expectEndTime).getTime() - new Date(
+									res.data.expectStartTime).getTime()) / (3600 *
+									1000)).toFixed(1)
+							} else {
+								DX.optionTitle(res.msg);
+							}
+						}
+					})
+				},
+				updateTime() { //更新时间
+					var $this = this
+					// if ($this.list[Number(DX.getParam('index')) - 1].buildStatus == 3) {
+					// 	DX.optionTitle('已完成,不能修改')
+					// 	return
+					// }
+					if (this.allList.expectStartTime == '' || this.allList.expectEndTime == '') {
+						DX.optionTitle('父级无时间，不可修改')
+						return
+					}
+					var oDate1 = new Date($('.el-date-editor--datetimerange').find('input').eq(0).val()); //开始
+					var oDate2 = new Date($('.el-date-editor--datetimerange').find('input').eq(1).val());
+					if (oDate1.getTime() > oDate2.getTime()) {
+						DX.optionTitle('开始时间不可大于结束时间')
+						return false; //
+					}
+					DX.ajax_method({
+						'type': 'POST',
+						'url': '/prod/xact/xjob/modify/time/plan',
+						'param': {
+							// 'startTime': $this.planStartTimeDate.getFullYear() + "-" + ($this.planStartTimeDate.getMonth() + 1) +
+							// 	"-" + $this.planStartTimeDate.getDate() + ' ' + "13:30:00",
+							// 'endTime': $this.planEndTimeDate.getFullYear() + "-" + ($this.planEndTimeDate.getMonth() + 1) + "-" +
+							// 	$this.planEndTimeDate.getDate() + ' ' + "14:00:00",
+							'startTime': $('.el-date-editor--datetimerange').find('input').eq(0).val(),
+							'endTime': $('.el-date-editor--datetimerange').find('input').eq(1).val(),
+							'currId': $this.id,
+							'preId': $this.list[Number(DX.getParam('index')) - 1].id,
+							'afterId': $this.list[Number(DX.getParam('index')) + 1].id,
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle()
+							} else {
+								DX.optionTitle(res.msg);
+							}
+						}
+					})
+				},
+				gofluxCalc() {
+					// DX.closeModal()
+					DX.open('../../../fluxCalc/company/calcPronum.html?contentId=' + this.id + '&parentId=' + this
+						.parentId +
+						'&type=' +
+						this.src + '&fromTo=1', {
+							title: '工程量计算'
+						})
+
+				},
+				addObs() { //添加责任人（obs）
+					DX.open('./addPeople.html?id=' + this.id + '&parentId=' + this.parentId, {
+						title: '添加责任人',
+						width: 650,
+						height: 540
+					})
+					return
+					this.hide4 = false;
+					var that = this;
+					var check = []
+					$.each(that.obsList, function(i, v) {
+						check.push(v.uid)
+					})
+					DX.ajax_method({
+						'url': '/plancount/obs/jobmanager/query/userTree',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$.fn.zTree.init($("#addPeopleTree"), pMSet, res.data);
+								var zobj = $.fn.zTree.getZTreeObj("addPeopleTree")
+								zobj.expandAll(true);
+								$.each(check, function(i, v) {
+									var node = zobj.getNodesByParam("uid", v)
+									zobj.checkNode(node[0], true, true);
+								})
+							}
+						}
+					});
+				},
+				addTbs(num) { //添加队伍（tbs）
+					var arr = []
+					$.each(this.tbsList, function(index, value) {
+						arr.push(value.builderId)
+					})
+					DX.open('./addTeam.html?contentId=' + this.id + '&teamId=' + arr.join(",") + '&xwbsId=' + this
+						.parentId + '&istbs=' + num, {
+							width: 600,
+							height: 350
+						})
+				},
+				closeModal: function() {
+					this.hide4 = true;
+					this.hide5 = true
+					$('.addWorkContentModal').hide()
+					this.hideAddModal = true
+				},
+				saveAddPeople: function() { //保存单个工作添加责任人
+					var that = this;
+					var arr = [];
+					var nodes = $.fn.zTree.getZTreeObj("addPeopleTree").getCheckedNodes(true);
+					$.each(nodes, function(i, v) {
+						if (v.level == 2) {
+							arr.push({
+								userId: v.uid,
+								departId: v.departId
+							})
+						}
+					})
+					DX.ajax_method({
+						'url': '/plancount/obs/jobmanager/modify/forJob',
+						'param': {
+							usersInfo: JSON.stringify(arr),
+							jobId: this.id
+						},
+						'type': 'POST',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								that.getObsTbs()
+								that.closeModal()
+							}
+						}
+					})
+				},
+			},
+			watch: {},
+		})
+		var pMSet = {
+			check: {
+				enable: true,
+				chkStyle: "checkbox", // 添加生效
+				chkboxType: {
+					"Y": "s",
+					"N": "s"
+				},
+				radioType: "level"
+			},
+			data: {
+				simpleData: {
+					enable: true,
+					idKey: "nodeId",
+					pIdKey: "parentId"
+				},
+				keep: {
+					leaf: true,
+					parent: false
+				},
+				key: {
+					name: "nodeName",
+					title: "nodeName"
+				}
+			},
+			view: {
+				showLine: true,
+				selectedMulti: true
+			},
+			callback: {
+				beforeCheck: true,
+				// onCheck: leftPeopleCheck,
+			},
+		};
+	</script>
+</html>

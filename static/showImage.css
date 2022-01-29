@@ -1,0 +1,51 @@
+ body,
+	  html {
+	  	height: calc(100% - 10px);
+	  }
+      #box {
+         width:100px;
+          height:50px;
+          position: absolute;
+		/*  background: url(./static/img/test.jpeg); */
+		  background-size:100% 100%;
+		  background-position:0 0;
+		  display: flex;
+		  justify-content: center;
+		  align-items: center;
+		  z-index:10000;
+      }
+      #img {
+        width:100%;
+        height:auto;
+	    position: absolute;
+		bottom:40px;
+        cursor: move;
+		position: absolute;
+      }
+      #scale { 
+        width: 10px; 
+        height: 10px; 
+        overflow: hidden; 
+        cursor: se-resize; 
+        position: absolute; 
+        right: 0; 
+        bottom: 0; 
+		z-index:2;
+      }
+	  .btn{
+		 position: absolute;
+		 bottom:10px;
+		 width:54px;
+		 height: 24px;
+		 padding: 0 23px;
+		 background-color: #606266;
+		 border-color: #fff;
+		 border-radius: 22px;
+		 display: flex;
+		 justify-content: center;
+		 align-items: center;
+	  }
+	  .dxicon{
+		  color:white;
+		 font-size: 8px;
+	  }

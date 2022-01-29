@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../../../static/common.css" />
+		<link rel="stylesheet" type="text/css" href="../../../static/elementui.css" />
+		<link rel="stylesheet" href="../../../static/ztree/zTreeStyle.css" />
+		<style type="text/css">
+
+		</style>
+	</head>
+	<body>
+		<div id="constructionPage" v-cloak>
+			<div style="padding: 15px 25px;height: calc(100% - 55px);overflow: auto;">
+				<div style="display: flex;overflow: auto;">
+					<div class="ztree" id="addPeopleTree"></div>
+				</div>
+				<p style="text-align: center;margin-top: 10px;">
+					<button class="btnBlue" @click="saveAddPeople">保存</button>
+				</p>
+			</div>
+		</div>
+	</body>
+	<script src="../../../static/js/jquery-1.8.3.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/js/vue.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../../static/dx.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript" src="../../../static/ztree/jquery.ztree.all.min.js"></script>
+	<script type="text/javascript">
+		var vm = new Vue({
+			el: '#constructionPage',
+			data: {
+				obsList:[],
+				id:'',
+				parentId:'',
+			},
+			mounted: function() {
+				this.id = DX.getParam('id')
+				this.parentId = DX.getParam('parentId')
+				this.newGetObs()
+			},
+			methods: {
+				addObs() { //添加责任人（obs）
+					var that = this;
+					var check = []
+					$.each(that.obsList, function(i, v) {
+						check.push(v.uid)
+					})
+					DX.ajax_method({
+						'url': '/plancount/obs/jobmanager/query/userTree',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$.fn.zTree.init($("#addPeopleTree"), pMSet, res.data);
+								var zobj = $.fn.zTree.getZTreeObj("addPeopleTree")
+								zobj.expandAll(true);
+								$.each(check, function(i, v) {
+									var node = zobj.getNodesByParam("uid", v)
+									zobj.checkNode(node[0], true, true);
+								})
+							}
+						}
+					});
+				},
+				newGetObs: function() {
+					var $this = this
+					DX.ajax_method({
+						'url': '/prod/xact/tbs/teams/by/xjob',
+						'param': {
+							xjobId: $this.id,
+							xwbsId: $this.parentId,
+							type: 'obs'
+						},
+						'callBack': function(res) {
+							if (res.code == 200) {
+								$this.obsList = res.data.persons
+								$.each($this.obsList, function(i, v) {
+									v.delRed = true
+								})
+								$this.addObs()
+							} else {
+								DX.optionTitle(res.msg);
+							}
+						}
+					})
+				},
+				saveAddPeople: function() { //保存单个工作添加责任人
+					var that = this;
+					var arr = [];
+					var nodes = $.fn.zTree.getZTreeObj("addPeopleTree").getCheckedNodes(true);
+					$.each(nodes, function(i, v) {
+						if (v.level == 2) {
+							arr.push({
+								userId: v.uid,
+								departId: v.departId
+							})
+						}
+					})
+					DX.ajax_method({
+						'url': '/plancount/obs/jobmanager/modify/forJob',
+						'param': {
+							usersInfo: JSON.stringify(arr),
+							jobId: that.id
+						},
+						'type': 'POST',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.domParent('vm.getDevice(7)')
+								DX.closeModal()
+							}
+						}
+					})
+				},
+			},
+		})
+		var pMSet = {
+			check: {
+				enable: true,
+				chkStyle: "checkbox", // 添加生效
+				chkboxType: {
+					"Y": "s",
+					"N": "s"
+				},
+				radioType: "level"
+			},
+			data: {
+				simpleData: {
+					enable: true,
+					idKey: "nodeId",
+					pIdKey: "parentId"
+				},
+				keep: {
+					leaf: true,
+					parent: false
+				},
+				key: {
+					name: "nodeName",
+					title: "nodeName"
+				}
+			},
+			view: {
+				showLine: true,
+				selectedMulti: true
+			},
+			callback: {
+				beforeCheck: true,
+				// onCheck: leftPeopleCheck,
+			},
+		};
+	</script>
+</html>
