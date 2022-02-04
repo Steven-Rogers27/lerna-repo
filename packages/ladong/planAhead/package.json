@@ -6,12 +6,19 @@
     "dev": "cross-env NODE_ENV=dev npm run serve",
     "serve": "webpack serve",
     "watch": "webpack --watch",
-    "build": "webpack"
+    "build": "webpack",
+    "server": "node server.js"
   },
   "repository": {
     "type": "git",
     "url": "git@192.168.1.90:crcc_front/web.git"
   },
   "author": "sunw",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "clean-webpack-plugin": "^4.0.0",
+    "express": "^4.17.2",
+    "extract-loader": "^5.1.0",
+    "webpack-dev-middleware": "^5.3.0"
+  }
 }
