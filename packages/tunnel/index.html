@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>测试</title>
+		<script src="http://apps.bdimg.com/libs/jquery/1.9.1/jquery.min.js"></script>
+		<script type="text/javascript">
+			$(function(){
+				/**
+				 *  1、K#+###.###  
+ * 2、+###.###  
+ * 3、K#  
+ * 4、+#  
+ * 5、K#+### 
+ * 6、K#+###.##  
+ * 7、K#+###.#  
+ * 8、+###.##  
+ * 9、+###.#
+				 */
+				// console.log(format(123456.789, "D", "K#+###.###"));
+				// console.log(format(123456.789, "D", "+###.###"));
+				// console.log(format(123456.789, "D", "K#"));
+				// console.log(format(123456.789, "D", "+#"));
+				// console.log(format(123456.789, "D", "K#+###"));
+				// console.log(format(123456.789, "D", "K#+###.##"));
+				// console.log(format(123456.789, "D", "K#+###.#"));
+				// console.log(format(123456.789, "D", "+###.##"));
+				// console.log(format(123456.789, "D", "+###.#"));
+				
+				
+				
+				console.log(format(123456, "D", "K#+###.###"));
+				console.log(format(123456, "D", "+###.###"));
+				console.log(format(123456, "D", "K#"));
+				console.log(format(123456, "D", "+#"));
+				console.log(format(123456, "D", "K#+###"));
+				console.log(format(123456, "D", "K#+###.##"));
+				console.log(format(123456, "D", "K#+###.#"));
+				console.log(format(123456, "D", "+###.##"));
+				console.log(format(123456, "D", "+###.#"));
+			});
+			
+			/**
+			 * 
+			 * @param {Object} value
+			 * @param {Object} format
+			 */
+			function format(value, prefix, format){
+				// debugger
+				
+				var K_SYMBOL = "K";
+				var L_SYMBOL = "+";
+				// 123456.7
+				var valueStr = value.toString();
+				var indexOfPot = valueStr.lastIndexOf(".");
+				var decimalStr = "0." + ((indexOfPot == -1) ? "000" : valueStr.substring(indexOfPot + 1))
+				var decimal = parseFloat(decimalStr);
+				// 获取公里级
+				var kilemeter = parseInt(value / 1000);
+				// 获取米级 带小数
+				var meter = parseInt(value) - kilemeter * 1000 + decimal;
+				
+				switch(format){
+					case "K#+###.###":
+						return prefix + K_SYMBOL + kilemeter + L_SYMBOL + meter.toFixed(3);
+					case "+###.###":
+						return prefix + L_SYMBOL + meter.toFixed(3);
+					case "K#":
+						return prefix + K_SYMBOL + kilemeter;
+					case "+#":
+						return prefix + L_SYMBOL + meter.toFixed(0);
+					case "K#+###":
+						return prefix + K_SYMBOL + kilemeter + L_SYMBOL + meter.toFixed(0);
+					case "K#+###.##":
+						return prefix + K_SYMBOL + kilemeter + L_SYMBOL + meter.toFixed(2);
+					case "K#+###.#":
+						return prefix + K_SYMBOL + kilemeter + L_SYMBOL + meter.toFixed(1);
+					case "+###.##":
+						return prefix + L_SYMBOL + meter.toFixed(2);
+					case "+###.#":
+						return prefix + L_SYMBOL + meter.toFixed(1);
+					default:
+						return "";
+				}
+			} 
+				//tool.dx185.com
+				//192.168.1.27:8090
+			/* var url = "http://192.168.1.27:8090/wxc/api/v1/base/moudle/list";
+				  // dev a58f2fdc11b43ed94e828f59db70cc9e
+				  // prod f7d8ca7e2048a90cabc31ae902baa73a;
+			var token = "a58f2fdc11b43ed94e828f59db70cc9e";
+			$("#timestam").text(url + "--" + token);
+			var settings = {
+			  "url": url,
+			  "method": "GET",
+			  "timeout": 0,
+			  "headers": {
+			    "Token": token
+			  },
+			};
+			
+			$.ajax(settings).done(function (response) {
+			  // alert(JSON.stringify(response));
+			  $("#result").html(JSON.stringify(response));
+			}); */
+		</script>
+	</head>
+	<body>
+		<h1>Welcome you. guys</h1>
+		<div id="timestam"></div>
+		<div id="result">response ...</div>
+		
+	</body>
+</html>

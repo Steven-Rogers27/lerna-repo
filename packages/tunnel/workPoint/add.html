@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<link rel="stylesheet" href="../../static/common.css">
+		<link rel="stylesheet" href="../../static/elementui.css">
+		<link rel="stylesheet" type="text/css" href="../../static/ztree/zTreeStyle.css" />
+		<style type="text/css">
+			[v-cloak] {
+				display: none;
+			}
+
+			#addfactory {
+				height: 100%;
+			}
+			.el-select{
+				width: 70%;
+			}
+			.el-select-dropdown__wrap{
+				max-height: 200px;
+			}
+			.boxItem {
+				width: 100%;
+				display: flex;
+				align-items: center;
+			}
+			.boxTop{
+				display: flex;
+				justify-content: space-between;
+			}
+			.boxLeft,.boxRight{
+				width:50%
+			}
+			.percentInput{
+				width:70%;
+			}
+			em{
+				color: red;
+			}
+			.titleBold {
+				display: block;
+				line-height: 28px;
+				text-align: right;
+				width: 113px;
+				margin-right: 5px;
+			}
+			.titleBoldRight{
+				display: block;
+				line-height: 28px;
+				text-align: right;
+				width: 130px;
+				margin-right: 5px;
+			}
+			.submit {
+				margin: 20px 0 20px 0;
+				display: flex;
+			
+				justify-content: center;
+				align-items: center;
+			}
+			.desc {
+				display: flex;
+				align-items: center;
+				box-sizing: border-box;
+				width: 100%;
+				height: 60px;
+				line-height: 1.6em;
+				padding: 10px;
+				border: none;
+				resize: none;
+			}
+			.box{
+				display: flex;
+				align-items: center;
+				flex-direction: row;
+				flex-wrap: nowrap;
+				width: 100%;
+			}
+			.boxFile{
+				width: 100%;
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: flex-start;
+				flex-direction: row;
+				align-items: flex-start;
+				align-content: flex-start;
+			}
+			.fileStyle {
+			    border: 1px solid #c8c6cc;
+			    border-radius: 4px;
+			    padding: 4px 6px;
+			    margin-right: 10px;
+			    height: 19px;
+			    margin-bottom: 5px;
+			}
+			.mt5{
+				margin-top: 5px;
+			}
+			em{
+				color: red;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="addfactory" v-cloak>
+			<div class="choose mt10">
+				<div class="boxTop mt10">
+					<div class="boxLeft">
+						<div class="boxItem">
+							<span class='titleBold'>
+								<em class="star-span">*</em>
+								工点名称:
+							</span>
+							<el-input class="percentInput" placeholder="请输入工点名称"  v-model="name"></el-input>
+						</div>
+						<div class="boxItem mt10">
+							<span class='titleBold'>
+								<em class="star-span">*</em>
+								所属构筑物:
+							</span>
+							<el-select class="percentInput" placeholder="请选择" v-model="StructureName" @change="changeType()">
+								<el-option
+								  v-for="item in StructureList"
+								  :key="item.id"
+								  :label="item.name"
+								  :value="item.id">
+								</el-option>
+							</el-selet>
+						</div>
+						<div class="boxItem mt10">
+							<span class='titleBold'>
+								所属工区:
+							</span>
+							<el-select class="percentInput" placeholder="请选择" v-model="areaName">
+								<el-option
+								  v-for="item in AreaList"
+								  :key="item.id"
+								  :label="item.workZoneName"
+								  :value="item.id">
+								</el-option>
+							</el-selet>
+						</div>
+						<div class="boxItem mt10">
+							<span class='titleBold'>
+								<em class="star-span">*</em>
+								工点类型:
+							</span>
+							<el-select class="percentInput" placeholder="请选择" v-model="typeName">
+								<el-option
+								  v-for="item in typeList"
+								  :key="item.code"
+								  :label="item.description"
+								  :value="item.code">
+								</el-option>
+							</el-selet>
+						</div>
+						<div class="boxItem mt10">
+							<span class='titleBold'>
+								<em class="star-span">*</em>
+								开挖方向:
+							</span>
+							<el-select class="percentInput" placeholder="请选择" v-model="directName" @change="directChange">
+								<el-option
+								  v-for="item in directList"
+								  :key="item.id"
+								  :label="item.label"
+								  :value="item.id">
+								</el-option>
+							</el-selet>
+						</div>
+						<div class="boxItem mt10">
+							<span class='titleBold'>
+								计划开工日期:
+							</span>
+							<el-date-picker
+							      v-model="planStartTime"
+							      type="date"
+							      placeholder="请选择" 
+								  format='yyyy-MM-dd'
+								  value-format='yyyy-MM-dd'
+								  :clearable='false'
+								  style="width:70%">
+							</el-date-picker>
+						</div>
+						<div class="boxItem mt10">
+							<span class='titleBold'>
+								实际开工日期:
+							</span>
+							<el-date-picker
+							      v-model="actualStartTime"
+							      type="date"
+							      placeholder="请选择" 
+								  format='yyyy-MM-dd'
+								  value-format='yyyy-MM-dd'
+								  :clearable='false'
+								  style="width:70%" disabled>
+							</el-date-picker>
+						</div>
+						<div class="boxItem mt10">
+							<span class='titleBold'>
+								计划完成日期:
+							</span>
+							<el-date-picker
+							      v-model="planendTime"
+							      type="date"
+							      placeholder="请选择" 
+								  format='yyyy-MM-dd'
+								  value-format='yyyy-MM-dd'
+								  :clearable='false'
+								  style="width:70%">
+							</el-date-picker>
+						</div>
+						<div class="boxItem mt10">
+							<span class='titleBold'>
+								实际完成日期:
+							</span>
+							<el-date-picker
+							      v-model="actualendTime"
+							      type="date"
+							      placeholder="请选择" 
+								  format='yyyy-MM-dd'
+								  value-format='yyyy-MM-dd'
+								  :clearable='false'
+								  style="width:70%" disabled>
+							</el-date-picker>
+						</div>
+						<div class="boxItem mt10">
+							<span class='titleBold'>
+								<!-- <em class="star-span">*</em> -->
+								正洞相交里程(m):
+							</span>
+							<el-input class="percentInput" placeholder="请输入" v-model="intersectMileage" onkeyup="value=value.replace(/^\.+|[^\d.]/g,'')"></el-input>
+						</div>
+					</div>
+					<div class="boxRight">
+						<div class="boxItem ">
+							<span class='titleBoldRight'>
+								<em class="star-span">*</em>
+								里程格式:
+							</span>
+							<el-select class="percentInput" placeholder="请选择" v-model="mileageName">
+								<el-option
+								  v-for="item in mileageArr"
+								  :key="item"
+								  :label="item"
+								  :value="item">
+								</el-option>
+							</el-selet>
+						</div>
+						<div class="boxItem mt10">
+							<span class='titleBoldRight'>
+								<!-- <em class="star-span">*</em> -->
+								里程前缀:
+							</span>
+							<el-input class="percentInput" placeholder="请输入" v-model="mileagePrefix"></el-input>
+						</div>
+						<div class="boxItem mt10">
+							<span class='titleBoldRight'>
+								<em class="star-span">*</em>
+								起点里程(m):
+							</span>
+							<el-input class="percentInput" placeholder="请输入" v-model="startMileage" onkeyup="value=value.replace(/^\.+|[^\d.]/g,'')" @blur="startEvent"></el-input>
+						</div>
+						<div class="boxItem mt10">
+							<span class='titleBoldRight'>
+								<em class="star-span">*</em>
+								终点里程(m):
+							</span>
+							<el-input class="percentInput" placeholder="请输入" v-model="endMileage" onkeyup="value=value.replace(/^\.+|[^\d.]/g,'')" @blur="endEvent"></el-input>
+						</div>
+						<div class="boxItem mt10">
+							<span class='titleBoldRight'>
+								中心里程(m):
+							</span>
+							<el-input class="percentInput" placeholder="请输入" v-model="centerMileage" disabled></el-input>
+						</div>
+						<div class="boxItem mt10">
+							<span class='titleBoldRight'>
+								总长度(m):
+							</span>
+							<el-input class="percentInput" placeholder="请输入" v-model="totalLength" disabled></el-input>
+						</div>
+						<div class="boxItem mt10">
+							<span class='titleBoldRight'>
+								<em class="star-span">*</em>
+								掌子面起点里程(m):
+							</span>
+							<el-input class="percentInput" placeholder="请输入" v-model="palmMileage" onkeyup="value=value.replace(/^\.+|[^\d.]/g,'')"></el-input>
+						</div>
+						<div class="boxItem mt10">
+							<span class='titleBoldRight'>
+								<em class="star-span">*</em>
+								仰拱起点里程(m):
+							</span>
+							<el-input class="percentInput" placeholder="请输入" v-model="upwardMileage" onkeyup="value=value.replace(/^\.+|[^\d.]/g,'')"></el-input>
+						</div>
+						<div class="boxItem mt10">
+							<span class='titleBoldRight'>
+								<em class="star-span">*</em>
+								二衬起点里程(m):
+							</span>
+							<el-input class="percentInput" placeholder="请输入" v-model="twoMileage" onkeyup="value=value.replace(/^\.+|[^\d.]/g,'')"></el-input>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="submit">
+				<button class="btnBlue" style="margin: 0 20px;" @click="cancelEvent">取消</button>
+				<button class="btnBlue" @click="confirmEvent">保存</button>
+			</div>
+			<!-- 上传大样图 -->
+			<input type="file" id="cardupPic" style="display: none;">
+		</div>
+	</body>
+</html>
+<script type="text/javascript" src="../../static/js/jquery-1.8.3.js"></script>
+<script type="text/javascript" src="../../static/dx.js"></script>
+<script type="text/javascript" src="../../static/js/vue.js" charset="utf-8"></script>
+<script src="../../static/js/component.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../static/js/elementui.js"></script>
+<script src="../../static/ztree/jquery.ztree.all.min.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+	var vm = new Vue({
+		el: "#addfactory",
+		data: {
+			// 计划开工日期
+			planStartTime:'',
+			// 计划结束日期
+			planendTime:'',
+            // 实际开工日期
+            actualStartTime:'',
+            // 实际结束日期
+            actualendTime:'',
+			// 起点里程
+			startMileage:'',
+			// 终点里程
+			endMileage:'',
+			// 掌子面
+			palmMileage:'',
+			// 仰拱
+			upwardMileage:'',
+			// 二衬
+			twoMileage:'',
+			centerMileage:'',
+			name:'',
+			mileagePrefix:'',
+			// 里程格式
+			mileageArr:[
+				'K#+###.###',
+				'+###.###',
+				'K#',
+				'+#',
+				'K#+###',
+				'K#+###.##',
+				'K#+###.#',
+				'+###.##',
+				'+###.#'
+			],
+			mileageName:'',
+			typeList:[],
+			typeName:'',
+			AreaList:[],
+			areaName:'',
+			directList:[
+			   {
+				   label:'从小里程到大里程',
+			       id:0,
+			   },
+			   {
+				   label:'从大里程到小里程',
+				   id:1,
+			   }
+			],
+			directName:'',
+			// 正洞相交里程
+			intersectMileage:'',
+			totalLength:'',
+			StructureList:[],
+			StructureName:'',
+			ZoneName:'',
+			id:''
+		},
+		mounted: function() {
+			this.id=DX.getParam('id');
+			if(this.id){
+				this.getDetail(this.id);
+			}
+			//获取工区
+			this.getWorkArea();
+			//获取工点类型
+			this.getType();
+			// 获取所属构筑物
+			this.getStructure();
+		},
+		methods: {
+			directChange:function(){
+				console.log(this.directName);
+				// debugger
+			},
+			changeType:function(e){
+				for(var i=0;i<this.StructureList.length;i++){
+					if(this.StructureName==this.StructureList[i].id){
+						this.mileageName=this.StructureList[i].mileageFormat;
+						this.mileagePrefix=this.StructureList[i].mileagePrefix;
+						this.startMileage=this.StructureList[i].startMileage;
+						this.endMileage=this.StructureList[i].endMileage;
+						this.totalLength=this.accSub(this.endMileage,this.startMileage);
+						this.centerMileage=(Number((this.endMileage-this.startMileage)/2)+Number(this.startMileage)).toFixed(3);
+					}
+				}
+			},
+			startEvent:function(){
+				if(!DX.isNumber(this.startMileage)||!DX.isNumber(this.endMileage)){
+					return;
+				}
+				if(this.accSub(this.endMileage,this.startMileage)<0){
+					DX.optionTitle('起点里程不可大于终点里程');
+					this.startMileage='';
+				}
+				this.totalLength=this.accSub(this.endMileage,this.startMileage);
+				this.centerMileage=(Number((this.endMileage-this.startMileage)/2)+Number(this.startMileage)).toFixed(3);
+			},
+			endEvent:function(){
+				if(!DX.isNumber(this.startMileage)||!DX.isNumber(this.endMileage)){
+					return;
+				}
+				if(this.accSub(this.endMileage,this.startMileage)<0){
+					DX.optionTitle('终点里程不可小于起点里程');
+					this.endMileage='';
+				}
+				this.totalLength=this.accSub(this.endMileage,this.startMileage);
+				this.centerMileage=(Number((this.endMileage-this.startMileage)/2)+Number(this.startMileage)).toFixed(3);
+			},
+			accSub:function(arg1,arg2){
+			    var r1,r2,m,n;
+			    try{r1=arg1.toString().split(".")[1].length}catch(e){r1=0}
+			    try{r2=arg2.toString().split(".")[1].length}catch(e){r2=0}
+			    m=Math.pow(10,Math.max(r1,r2));
+			    //last modify by deeka
+			    //动态控制精度长度
+			    n=(r1>=r2)?r1:r2;
+			    return ((arg1*m-arg2*m)/m).toFixed(n);
+			},
+			getDetail:function(id){
+				var that=this;
+				DX.ajax_method({
+					'url': '/wbsp/worksite/tunnel/getById',
+					'param': {
+						'workSiteId':id
+					},
+					'callBack': function(res) {
+						if (res.code == 200) {
+							res.data.extra=JSON.parse(res.data.extra)
+							that.name=res.data.name;
+							that.StructureName=res.data.idBuilding;
+							that.areaName=res.data.idZone;
+							that.typeName=res.data.type;
+							that.directName=res.data.extra.directName;
+							that.planStartTime=res.data.planStartDate;
+							that.planendTime=res.data.planEndDate;
+							that.intersectMileage=res.data.extra.intersectMileage;
+							that.mileagePrefix=res.data.mileagePrefix;
+							that.mileageName=res.data.mileageFormat;
+							that.startMileage=res.data.startMileage;
+							that.endMileage=res.data.endMileage;
+							that.centerMileage=res.data.extra.centerMileage;
+							that.totalLength=res.data.totalLength;
+							that.palmMileage=res.data.extra.palmMileage;
+							that.upwardMileage=res.data.extra.upwardMileage;
+							that.twoMileage=res.data.extra.twoMileage;
+						} else {
+							alert(res.msg);
+						}
+					}
+				})
+			},
+			getStructure:function(){
+				var that=this;
+				DX.ajax_method({
+					'url': '/wbsp/building/listBuilding',
+					'callBack': function(res) {
+						if (res.code == 200) {
+							that.StructureList=res.data;
+						} else {
+							alert(res.msg);
+						}
+					}
+				})
+			},
+			getWorkArea:function(){
+				var that=this;
+				DX.ajax_method({
+					'url': '/plancount/obs/workzone/query/simpleList',
+					'callBack': function(res) {
+						if (res.code == 200) {
+							that.AreaList=res.data;
+						} else {
+							alert(res.msg);
+						}
+					}
+				})
+			},
+			getType:function(){
+				var that=this;
+				DX.ajax_method({
+					'url': '/wbsp/worksite/tunnel/getWorkSiteTypeList',
+					'callBack': function(res) {
+						if (res.code == 200) {
+							that.typeList=res.data;
+						} else {
+							alert(res.msg);
+						}
+					}
+				})
+			},
+			confirmEvent:function(){
+				if(this.directName!='0'&&this.directName!='1'){
+					DX.optionTitle('请选择开挖方向')
+					return false
+				}
+				// if(this.intersectMileage==''){
+				// 	DX.optionTitle('请输入正洞相交里程')
+				// 	return false
+				// }
+				if(this.palmMileage==''){
+					DX.optionTitle('请输入掌子面起点里程')
+					return false
+				}
+				if(this.twoMileage==''){
+					DX.optionTitle('请输入二衬起点里程')
+					return false
+				}
+				if(this.upwardMileage==''){
+					DX.optionTitle('请输入仰拱起点里程')
+					return false
+				}	
+				var r = confirm('确认保存吗?');
+				if (r) {
+					
+					var xWorkSiteVo ={
+						extra:{
+							// 开挖方向
+							directName:'',
+							// 相交里程
+							intersectMileage:'',
+							// 中心里程
+						    centerMileage:'',
+							// 掌子面
+							palmMileage:'',
+							// 仰拱
+							upwardMileage:'',
+							// 二衬
+							twoMileage:'',
+							ZoneName:'',
+						},
+						idBuilding:'',
+						endMileage:'',
+						id:'',
+						idZone:'',
+						mileageFormat:'',
+						mileagePrefix:'',
+						name:'',
+						planEndDate:'',
+						planStartDate:'',
+						startMileage:'',
+						totalLength:'',
+						type:'',
+					};
+					xWorkSiteVo.idBuilding=this.StructureName;
+					xWorkSiteVo.endMileage=this.endMileage;
+					xWorkSiteVo.id=this.id;
+					xWorkSiteVo.idZone=this.areaName;
+					xWorkSiteVo.mileageFormat=this.mileageName;
+					xWorkSiteVo.mileagePrefix=this.mileagePrefix;
+					xWorkSiteVo.name=this.name;
+					xWorkSiteVo.planEndDate=this.planendTime;
+					xWorkSiteVo.planStartDate=this.planStartTime;
+					xWorkSiteVo.startMileage=this.startMileage;
+					xWorkSiteVo.totalLength=this.totalLength;
+					xWorkSiteVo.type=this.typeName;
+					// 新增
+					for(var i=0;i<this.AreaList.length;i++){
+						if(this.AreaList[i].id==this.areaName){
+							this.ZoneName=this.AreaList[i].workZoneName;
+						}
+					}
+					xWorkSiteVo.extra.ZoneName=this.ZoneName;
+					xWorkSiteVo.extra.directName=this.directName;
+					xWorkSiteVo.extra.intersectMileage=this.intersectMileage;
+					xWorkSiteVo.extra.centerMileage=this.centerMileage;
+					xWorkSiteVo.extra.palmMileage=this.palmMileage;
+					xWorkSiteVo.extra.upwardMileage=this.upwardMileage;
+					xWorkSiteVo.extra.twoMileage=this.twoMileage;
+					xWorkSiteVo.extra=JSON.stringify(xWorkSiteVo.extra)
+					console.log(xWorkSiteVo);
+					var that=this;
+					DX.ajax_method({
+						'url': '/wbsp/worksite/tunnel/saveOrUpdate',
+						'type': "POST",
+						'data': xWorkSiteVo,
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle("保存成功");
+								// 刷新
+								DX.domParent("vm.initDate()")
+								// 关闭弹窗
+								setTimeout(function() {
+									DX.closeModal();
+								}, 1000)
+							} else {
+								alert(res.msg);
+							}
+						}
+					})
+				}
+			},
+			cancelEvent:function(){
+				// 关闭弹窗
+				DX.closeModal()
+			},
+		},
+	})
+</script>
+

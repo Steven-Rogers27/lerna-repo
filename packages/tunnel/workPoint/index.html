@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>工点</title>
+		<link rel="stylesheet" href="../../static/common.css">
+		<link rel="stylesheet" href="../../static/elementui.css">
+		<link rel="stylesheet" type="text/css" href="../../static/ztree/zTreeStyle.css" />
+		<link rel="stylesheet" href="../static/css/addCom.css">
+		<link rel="stylesheet" type="text/css" href="../../static/swiper/swiper.min.css" />
+		<!-- 按钮组件 -->
+		<link rel="stylesheet" href="../../static/component.css">
+		<link rel="stylesheet" href="../../static/tableFont.css">
+		<style type="text/css">
+			[v-cloak] {
+				display: none;
+			}
+
+			.infoBox {
+				display: flex;
+				align-items: center;
+				margin:10px 0;
+				justify-content: space-between;
+				flex-wrap: wrap;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="subCom" v-cloak>
+			<img v-show="disabled" src='../static/img/loading.gif' style="position: absolute;left:calc(50% - 50px );top:calc(50% - 50px); z-index: 9;"/>
+			<div class="infoBox">
+				<div style="display: flex;align-items: center;">
+					<button class="btnBlue" style="margin-right: 10px;" @click="chooseCom()">添加工点</button>
+					<div class="mr10">
+						<label>工点类型: </label>
+						<el-select placeholder="请选择" v-model="typeName" style="width:120px" @change="fnChange()">
+							<el-option label="全部" value=""></el-option>
+							<el-option
+							  v-for="item in typeList"
+							  :key="item.code"
+							  :label="item.description"
+							  :value="item.code">
+							</el-option>
+						</el-select>
+					</div>
+					<div class="mr10">
+						<input placeholder="请输入工点名称" class="input" style="width: 170px;" v-model="conditions"/>
+					</div>
+				</div>
+			</div>
+			<el-table :data="deparComList"  border default-expand-all class="mt10"  :header-cell-style="{'text-align':'center'}" :span-method="objectSpanMethod">
+				<el-table-column label="序号" type="index" header-align="center" min-width="4%">
+				</el-table-column>
+				<el-table-column label="所属构筑物" align="center" header-align="center" min-width="20%">
+					<template slot-scope="scope">
+						<span>{{scope.row.buildingName}}</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="工点名称" align="center" header-align="center" min-width="20%"> 
+					<template slot-scope="scope">
+						<span class="listToDetail" @click="ShowDetailEvent(scope.row.id)">{{scope.row.name}}</span>
+					</template>
+				</el-table-column>
+
+				<el-table-column label="工点类型" min-width="15%" :show-overflow-tooltip="true" align="center">
+					<template slot-scope="scope">
+						 <span>{{scope.row.typeName}}</span>
+					</template>
+				</el-table-column>
+<!--				<el-table-column label="所属工区" align="center" header-align="center" min-width="15%">-->
+<!--					<template slot-scope="scope">-->
+<!--						 <span>{{scope.row.extra.ZoneName}}</span>-->
+<!--					</template>-->
+<!--				</el-table-column>-->
+				<el-table-column label="起点里程" align="center" min-width="13%" :show-overflow-tooltip="true">
+					<template slot-scope="scope">
+						 <span>{{scope.row.startMileage}}</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="终点里程" align="center" header-align="center" min-width="13%">
+					<template slot-scope="scope">
+						  <span>{{scope.row.endMileage}}</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="总长度" align="center" header-align="center" min-width="13%">
+					<template slot-scope="scope">
+						 <span>{{scope.row.totalLength}}</span>
+					</template>
+				</el-table-column>
+<!--				<el-table-column label="工期预警" align="center" header-align="center" min-width="15%">-->
+<!--					<template slot-scope="scope">-->
+<!--						 <span v-if="scope.row.projectWarning>0">提前{{scope.row.projectWarning}}</span>-->
+<!--						 <span v-if="scope.row.projectWarning<0">滞后{{Math.abs(scope.row.projectWarning)}}</span>-->
+<!--					</template>-->
+<!--				</el-table-column>-->
+				<el-table-column label="操作" align="center" header-align="center" min-width="10%">
+					<template slot-scope="scope">
+						<i class="fa fa-eye" title="详情" @click="ShowDetailEvent(scope.row.id)"></i>
+						<i class="fa fa-trash-alt" title="删除" @click="delEvent(scope.row.id)"></i>
+						<i v-if="scope.row.xwbsId==''" class="fa fa-plus-square" title="初始wbs" @click="initWbs(scope.row.id)"></i>
+					</template>
+				</el-table-column>
+			</el-table>
+            <div class="page1" style="margin: 10px 0;"></div>
+		</div>
+	</body>
+</html>
+<script type="text/javascript" src="../../static/js/jquery-1.8.3.js"></script>
+<script type="text/javascript" src="../../static/dx.js"></script>
+<script type="text/javascript" src="../../static/js/vue.js" charset="utf-8"></script>
+<script src="../../static/js/component.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../static/js/elementui.js"></script>
+<script src="../../static/ztree/jquery.ztree.all.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../static/js/pages.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../static/swiper/swiper.min.js" type="text/javascript" charset="utf-8"></script>
+<!-- 按钮组件 -->
+<script src="../../static/js/componentOne.js"></script>
+<script src="../../static/js/componentTwo.js"></script>
+<script type="text/javascript">
+	var vm = new Vue({
+		el: "#subCom",
+		data: {
+			typeList:[],
+			typeName:'',
+			comTypeList:[],
+			conditions:'',
+			deparComList:[{
+				extra:{}
+			}],
+			idBuilding:'',
+			disabled:false,
+			spanArr:[],
+		},
+		mounted: function() {
+			//获取工点类型
+			this.getType(); 
+			this.initDate();
+		},
+		methods: {
+			initWbs:function(id){
+				var that=this;
+				that.disabled =true;
+				DX.ajax_method({
+					'url': '/prod/building/createXWbsByWorkSite',
+					'param': {
+						'workSiteId':id
+					},
+					'type':'POST',
+					'callBack': function(res) {
+						if (res.code == 200) {
+							DX.optionTitle('成功！');
+						    that.disabled=false;
+						} else {
+							alert(res.msg);
+						}
+					}
+				})
+			},
+			delEvent:function(id){
+				var r = confirm('确认删除吗?');
+				if(r){
+					var that=this;
+					DX.ajax_method({
+						'url': '/wbsp/worksite/tunnel/delById',
+						'param': {
+							'workSiteId':id
+						},
+						'type':'POST',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle('删除成功！');
+								that.initDate();
+							} else {
+								alert(res.msg);
+							}
+						}
+					})
+				}
+			},
+			fnChange:function(){
+				console.log(this.typeName);
+				this.initDate();
+			},
+			getType:function(){
+				 var that=this;
+				 DX.ajax_method({
+				 	'url': '/wbsp/worksite/tunnel/getWorkSiteTypeList',
+				 	'callBack': function(res) {
+				 		if (res.code == 200) {
+				 			that.typeList=res.data;
+				 		} else {
+				 			alert(res.msg);
+				 		}
+				 	}
+				 })
+			},	
+			initDate:function(id){
+				var that=this;
+				DX.ajax_method({
+					'url': '/wbsp/worksite/tunnel/getList',
+					'param': {
+						'keyword':that.conditions,
+						'workSiteType':that.typeName,
+					},
+					'callBack': function(res) {
+						if (res.code == 200) {
+							for(var i=0;i<res.data.length;i++){
+								res.data[i].extra=JSON.parse(res.data[i].extra)
+								res.data[i].startMileage=that.format(res.data[i].startMileage,res.data[i].mileagePrefix,res.data[i].mileageFormat);
+								res.data[i].endMileage=that.format(res.data[i].endMileage,res.data[i].mileagePrefix,res.data[i].mileageFormat);
+							}
+							that.deparComList=res.data;
+							that.getSpanArr(res.data);
+							// 刷新子页面
+							if(id){
+							  that.refreshChild(id);
+							}
+						} else {
+							alert(res.msg);
+						}
+					}
+				})
+			},
+			format:function(value, prefix, format){
+			    // debugger
+			    
+			    var K_SYMBOL = "K";
+			    var L_SYMBOL = "+";
+			    // 123456.7
+			    var valueStr = value.toString();
+			    var indexOfPot = valueStr.lastIndexOf(".");
+			    var decimalStr = "0." + ((indexOfPot == -1) ? "000" : valueStr.substring(indexOfPot + 1))
+			    var decimal = parseFloat(decimalStr);
+			    // 获取公里级
+			    var kilemeter = parseInt(value / 1000);
+			    // 获取米级 带小数
+			    var meter = parseInt(value) - kilemeter * 1000 + decimal;
+			    switch(format){
+			     case "K#+###.###":
+			         var final=this.finalDeal(meter.toFixed(3));
+			      return prefix + K_SYMBOL + kilemeter + L_SYMBOL +final;
+			     case "+###.###":
+			         var final=this.finalDeal(meter.toFixed(3));
+			      return prefix + L_SYMBOL + final;
+			     case "K#":
+			      return prefix + K_SYMBOL + kilemeter;
+			     case "+#":
+			         var final=this.finalDeal(meter.toFixed(0));
+			      return prefix + L_SYMBOL + final;
+			     case "K#+###":
+			         var final=this.finalDeal(meter.toFixed(0));
+			      return prefix + K_SYMBOL + kilemeter + L_SYMBOL + final;
+			     case "K#+###.##":
+			         var final=this.finalDeal(meter.toFixed(2));
+			      return prefix + K_SYMBOL + kilemeter + L_SYMBOL + final;
+			     case "K#+###.#":
+			         var final=this.finalDeal(meter.toFixed(1));
+			      return prefix + K_SYMBOL + kilemeter + L_SYMBOL + final;
+			     case "+###.##":
+			         var final=this.finalDeal(meter.toFixed(2));
+			      return prefix + L_SYMBOL + final;
+			     case "+###.#":
+			         var final=this.finalDeal(meter.toFixed(1));
+			      return prefix + L_SYMBOL + final;
+			     default:
+			      return "";
+			    }
+			   },
+			   finalDeal:function(result){
+			    var finalResult;
+			    var resultStr=parseInt(result).toString();
+			    if(resultStr.length==0){
+			     finalResult='000'
+			    }
+			    else if(resultStr.length==1){
+			     finalResult='00'+result;
+			    }
+			    else if(resultStr.length==2){
+			     finalResult='0'+result;
+			    }
+			    else if(resultStr.length==3){
+			     finalResult=result;
+			    }
+			    return finalResult;
+			   },
+			refreshChild: function(id) {
+				DX.reloadByIframeId("detail.html", 'vm.getDetail(' + id + ')');
+			},
+			chooseCom:function(){
+				window.dialog('add.html', '添加工点', false, 1000, 480);
+			},
+			selectFn:function(){
+				
+			},
+			ShowDetailEvent:function(id){
+				window.location.href="detail.html?id="+id
+			},
+			getSpanArr(data) {
+				var that=this
+				that.spanArr=[]
+				// data就是我们从后台拿到的数据
+				for (var i = 0; i < data.length; i++) {
+					if (i === 0) {
+						that.spanArr.push(1);
+						that.pos = 0;
+					} else {
+						// 判断当前元素与上一个元素是否相同
+						if (data[i].buildingName === data[i - 1].buildingName) {
+							that.spanArr[that.pos] += 1;
+							that.spanArr.push(0);
+						} else {
+							that.spanArr.push(1);
+							that.pos = i;
+						}
+					}
+					console.log(that.spanArr);
+				}
+			},
+			objectSpanMethod({ row, column, rowIndex, columnIndex }) {
+				if (columnIndex === 0 || columnIndex === 1) {
+					const _row = this.spanArr[rowIndex];
+					const _col = _row > 0 ? 1 : 0;
+					// console.log(`rowspan:${_row} colspan:${_col}`);
+					return {
+						// [0,0] 表示这一行不显示， [2,1]表示行的合并数
+						rowspan: _row,
+						colspan: _col
+					};
+				}
+			}
+		},
+		watch:{
+			conditions:function(newValue,oldValue){
+				if(newValue != oldValue){
+					this.initDate()
+				}
+			},
+		},
+	})
+</script>

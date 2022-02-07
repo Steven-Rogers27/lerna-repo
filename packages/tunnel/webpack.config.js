@@ -3,42 +3,25 @@ const fs = require('fs');
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CopyPlugin = require("copy-webpack-plugin");
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const Handlebars = require("handlebars");
 
-const rootPath = path.join(__dirname, '../../../');
+const rootPath = path.join(__dirname, '../../');
 const staticPath = path.join(rootPath, 'static');
 const staticJsPath = path.join(staticPath, 'js/');
-
-const jsAssets = [
-	'static/js/jquery-1.8.3.js',
-	'static/js/vue.js',
-	'static/js/elementui.js',
-	'static/dx.js',
-	'static/js/component.js',
-];
-
-const cssAssets = [
-	'../../../static/common.css',
-	'../../../static/elementui.css',
-	'./newList.css',
-];
-
 module.exports = {
 	mode: process.env.NODE_ENV === 'dev' ? 'development' : 'production',
 	entry: {
-		newList: path.resolve(__dirname, 'newList.js'),
+    plan: path.resolve(__dirname, 'plan.html'),
 	},
 	output: {
-		filename: '[name].[contenthash].bundle.js',
 		path: path.join(__dirname, 'dist'),
 		clean: true,
-		publicPath: '/ladong/planAhead/',
+		publicPath: '/tunnel/',
 	},
 	module: {
 		rules: [
 			{
         test: /\.css$/i,
-				exclude: /(common|elementui)\.css$/i, // 必须加上
+				exclude: /(common|elementui|zTreeStyle|(swiper\.min))\.css$/i, // 必须加上
 				loader: 'css-loader',
 			},
 			{
@@ -75,18 +58,44 @@ module.exports = {
 								],
 							},
 							// preprocessor: (content, loaderContext) => {
-							// 	let result;
-
-							// 	try {
-							// 		result = Handlebars.compile(content)({
-							// 			planPageUrl: 'http://localhost:3001/tunnel/plan.html',
-							// 		});
-							// 	} catch (error) {
-							// 		loaderContext.emitError(error);
-
-							// 		return content;
+							// 	let result = content;
+							// 	let hasStyle = true;
+							// 	while (hasStyle) {
+							// 		// start tag of <style>
+							// 		let ss = result.match(/<style(\s[a-z]+\s?=\s?('|")[\sa-z/]+('|"))+>/);
+							// 		let ssIdx = -1,
+							// 				esIdx = -1;
+							// 		// end tag of <style>
+							// 		let es = result.match(/<\/style>/);
+							// 		if (ss) {
+							// 			ssIdx = ss.index;
+							// 		}
+							// 		if (es) {
+							// 			esIdx = es.index;
+							// 		}
+							// 		let index = 1;
+							// 		if (ssIdx > -1 && esIdx > -1) {
+							// 			hasStyle = true;
+							// 			// 提取出css样式到单独的文件
+							// 			let cssStart = ssIdx + ss[0].length;
+							// 			let css = result.slice(cssStart, esIdx);
+							// 			const cssFileName = `style${index}.css`;
+							// 			const cssFilePath = path.resolve(__dirname, cssFileName);
+							// 			fs.appendFile(cssFilePath, css, (err) => {
+							// 				if (err) {
+							// 					console.error(err);
+							// 				}
+							// 			});
+							// 			// html文件的剩余内容
+							// 			let pre = result.slice(0, ssIdx);
+							// 			pre += `<link rel="stylesheet" type="text/css" href="${cssFileName}" />`
+							// 			// </style>从 / 开始有7个字符
+							// 			let post = result.slice(esIdx + 8);
+							// 			result = `${pre}${post}`;
+							// 		} else {
+							// 			hasStyle = false;
+							// 		}
 							// 	}
-
 							// 	return result;
 							// },
 						},
@@ -98,39 +107,8 @@ module.exports = {
 	},
 	plugins: [
 		new HtmlWebpackPlugin({
-			template: path.join(__dirname, 'newList.html'),
-			filename: 'newList.html',
-			inject: 'body',
-			// templateParameters: (compilation, assets, assetTags, options) => {
-      //   return {
-			// 		compilation,
-			// 		webpackConfig: compilation.options,
-      //     htmlWebpackPlugin: {
-      //       tags: {
-			// 				headTags: cssAssets.map((href) => {
-			// 					return {
-			// 						tagName: 'link',
-			// 						attributes: {
-			// 							rel: 'stylesheet',
-			// 							type: 'text/css',
-			// 							href: href,
-			// 						},
-			// 					};
-			// 				}),
-			// 				bodyTags: jsAssets.map((src) => {
-			// 					return {
-			// 						tagName: 'script',
-			// 						attributes: {
-			// 							src: src,
-			// 							type: 'text/javascript',
-			// 							charset: 'utf-8',
-			// 						},
-			// 					};
-			// 				}),
-			// 			},
-      //     },
-      //   };
-      // },
+			template: path.join(__dirname, 'plan.html'),
+      filename: '[name].html',
 		}),
 		// 从缓存的角度考虑，对于不会改变的静态文件用copy，对于会改变的文件用loader每次重新生成名称
 		new CopyPlugin({
@@ -155,6 +133,18 @@ module.exports = {
 					from: path.posix.join(rootPath.replace(/\\/g, "/"), 'static/js/component.js'),
 					to: "static/js/",
 				},
+        {
+					from: path.posix.join(rootPath.replace(/\\/g, "/"), 'static/ztree/jquery.ztree.all.min.js'),
+					to: "static/ztree/",
+				},
+        {
+					from: path.posix.join(rootPath.replace(/\\/g, "/"), 'static/laydate/laydate.js'),
+					to: "static/laydate/",
+				},
+        {
+          from: './static/js/orderTree.js',
+          to: 'static/js',
+        },
       ],
     }),
 		new CleanWebpackPlugin(),

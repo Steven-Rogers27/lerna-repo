@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<link rel="stylesheet" href="../../static/common.css">
+		<link rel="stylesheet" href="../../static/elementui.css">
+		<!-- 按钮组件 -->
+		<link rel="stylesheet" href="../../static/component.css">
+		<link rel="stylesheet" href="../../static/tableFont.css">
+		<style type="text/css">
+			[v-cloak] {
+				display: none;
+			}
+			#table{
+				margin: 10px 0;
+			}
+			.el-tab-pane{
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+			}
+			.table tr th{
+				text-align: right;
+				padding-right: 5px;
+			}
+			.table tr td{
+				text-align: left;
+				text-indent:10px;
+			}
+			.submit {
+				margin: 20px 0 20px 0;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+			.infoBox {
+				display: flex;
+				align-items: center;
+				margin: 10px 0;
+				justify-content: space-between;
+				flex-wrap: wrap;
+				width:100%;
+			}
+			/* 可编辑 */
+			.excelEdit {
+				border: none;
+				height: 29px;
+				background: #F6F9E8;
+				text-align: center;
+				width: 100%;
+				outline: none;
+			}
+			.operaBox{
+				display: flex;
+				margin-top: 10px;
+				color: #333333;
+				align-items: center;
+				justify-content: space-between;
+				width:100%;
+			}
+			.cell .el-select {
+				display: block;
+			}
+			.cell .el-input__inner {
+				border: none!important;
+			}
+			.el-select{height: 28px;!important}
+			.el-input__icon{height: 28px;!important}
+			.el-input__inner{height: 28px!important;line-height: 28px!important;}
+		</style>
+	</head>
+	<body>
+		<div id="table" v-cloak>
+			<el-tabs v-model="activeName" type="card" @tab-click="handleClick">
+				<el-tab-pane label="基本信息" name="first">
+					<table border="" cellspacing="" cellpadding="" class="table tableHover" style="width:50%">
+						<thead>
+							<tr>
+								<th width="100" align="left">构筑物名称</th>
+								<td colspan="3" align="left">{{mileObj.name}}</td>
+							</tr>
+							<tr>
+								<th width="100">构筑物类型</th>
+								<td align="left">{{mileObj.typeName}}</td>
+								<th width="120">计划开工日期</th>
+								<td>{{mileObj.planStartDate}}</td>
+							</tr>
+							<tr>
+								<th>里程前缀</th>
+								<td>{{mileObj.mileagePrefix}}</td>
+								<th>计划结束日期</th>
+								<td>{{mileObj.planEndDate}}</td>
+							</tr>
+							<tr>
+								<th>里程格式</th>
+								<td>{{mileObj.mileageFormat}}</td>
+								<th>道床开始日期</th>
+								<td>{{mileObj.extra.roadStartTime}}</td>
+							</tr>
+							<tr>
+								<th>起点里程</th>
+								<td>{{mileObj.startMileage}}</td>
+								<th>道床结束日期</th>
+								<td>{{mileObj.extra.roadEndTime}}</td>
+							</tr>
+							<tr>
+								<th>终点里程</th>
+								<td>{{mileObj.endMileage}}</td>
+								<th>铺轨开始日期</th>
+								<td>{{mileObj.extra.trackStartTime}}</td>
+							</tr>
+							<tr>
+								<th>中心里程</th>
+								<td>{{mileObj.extra.centerMileage}}</td>
+								<th>铺轨结束日期</th>
+								<td>{{mileObj.extra.trackEndTime}}</td>
+							</tr>
+							<tr>
+								<th>隧道长度</th>
+								<td>{{mileObj.totalLength}}</td>
+								<th>贯通日期</th>
+								<td>{{mileObj.extra.throughTime}}</td>
+							</tr>
+							<tr>
+								<th>隧道类型</th>
+								<td>{{mileObj.extra.tunnelName}}</td>
+								<th>出渣运输类型</th>
+								<td>{{mileObj.extra.transportName}}</td>
+							</tr>
+							<tr>
+								<th>开挖面积</th>
+								<td>{{mileObj.extra.grubName}}</td>
+								<th>设计正洞作业面</th>
+								<td>{{mileObj.extra.designWorkArea}}</td>
+							</tr>
+							<tr>
+								<th>最大深埋</th>
+								<td>{{mileObj.extra.designWorkArea}}</td>
+								<th>隧道风险等级</th>
+								<td>{{mileObj.extra.riskLevel}}</td>
+							</tr>
+							<tr>
+								<th>单线或双线</th>
+								<td>{{mileObj.extra.lineName}}</td>
+								<th>报警阈值</th>
+								<td>{{mileObj.extra.warning}}</td>
+							</tr>
+							<tr>
+								<th>施工方法</th>
+								<td>{{mileObj.extra.buildName}}</td>
+								<th>是否重点工程</th>
+								<td>
+									<div style="display: flex;height: 28px;align-items: center;text-indent: 10px;">
+										<label style="margin-right: 10px;">
+											<input name="important" type="radio" value="true" v-model="mileObj.important" disabled/>  是
+										</label>
+										<label>
+											<input name="important" type="radio" value="false" v-model="mileObj.important" disabled/>  否
+										</label>
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<th>隧道状态</th>
+								<td>{{mileObj.extra.tunnelState}}</td>
+								<th>是否与其它单位对打</th>
+								<td>
+									<div style="display: flex;height: 28px;align-items: center;text-indent: 10px;">
+										<label style="margin-right: 10px;">
+											<input name="fight" type="radio" value="1" v-model="mileObj.extra.fight" disabled/>  是
+										</label>
+										<label>
+											<input name="fight" type="radio" value="0" v-model="mileObj.extra.fight" disabled/>  否
+										</label>
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<th>目前作业面</th>
+								<td>{{mileObj.extra.workArea}}</td>
+								<th>是否通过架桥机</th>
+								<td>
+									<div style="display: flex;height: 28px;align-items: center;text-indent: 10px;">
+										<label style="margin-right: 10px;">
+											<input name="bridge" type="radio" value="1" v-model="mileObj.extra.bridge" disabled/>  是
+										</label>
+										<label>
+											<input name="bridge" type="radio" value="0" v-model="mileObj.extra.bridge" disabled/>  否
+										</label>
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<th>地理位置</th>
+								<td>
+									<span>{{mileObj.province}}</span>
+									<span v-if="mileObj.county">-{{mileObj.county}}</span>
+								</td>
+								<th>设计速度</th>
+								<td>{{mileObj.extra.speed}}</td>
+							</tr>
+							<tr>
+								<th>详细位置</th>
+								<td colspan="3">{{mileObj.location}}</td>
+							</tr>
+							<tr>
+								<th>风险地质标识</th>
+								<td colspan="3">{{mileObj.extra.riskSign}}</td>
+							</tr>
+							<tr>
+								<th>风险地质</th>
+								<td colspan="3">{{mileObj.extra.riskGeology}}</td>
+							</tr>
+							<tr>
+								<th>不良地质情况</th>
+								<td colspan="3">{{mileObj.extra.badGeology}}</td>
+							</tr>
+							<tr>
+								<th>构筑物说明</th>
+								<td colspan="3">{{mileObj.extra.explain}}</td>
+							</tr>
+							<tr>
+								<th>平面图</th>
+								<td colspan="3">
+									<div v-for="val,index in planeArr">
+										<span>{{val.name}}</span>
+										<span class="listToDetail" @click="download(val.encodeFileId)">下载</span>
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<th>平面示意图</th>
+								<td colspan="3">
+									<div v-for="val,index in planeSignArr">
+										<span>{{val.name}}</span>
+										<span class="listToDetail" @click="download(val.encodeFileId)">下载</span>
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<th>纵断面图</th>
+								<td colspan="3">
+									<div v-for="val,index in profileArr">
+										<span>{{val.name}}</span>
+										<span class="listToDetail" @click="download(val.encodeFileId)">下载</span>
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<th>备注</th>
+								<td colspan="3">{{mileObj.remark}}</td>
+							</tr>
+						</thead>
+					</table>
+				</el-tab-pane>
+				<el-tab-pane label="里程信息" name="second">
+					<div class="infoBox">
+						<div style="width:100%">
+							<p style="font-size: 18px;font-weight: 700;">{{mileObj.name}}</p>
+							<div style="" class="operaBox">
+								<div>
+									<span style="margin-right: 20px;">
+										起讫点里程：
+										<span>{{mileObj.startAllMileage}}-</span>
+										<span>{{mileObj.endAllMileage}}</span>
+									</span>
+									<span style="margin-right: 20px;">隧道长度(km)：{{mileObj.totalLength}}</span>
+									<span style="margin-right: 20px;">开工起止日期：{{mileObj.planStartDate}}-{{mileObj.planEndDate}}</span>
+								</div>
+								<!-- <button class="btnBlue" @click="AddEvent()">新增</button> -->
+							</div>
+						</div>
+					</div>
+					<el-table :data="mileageList" border default-expand-all class="mt10"  :header-cell-style="{'text-align':'center'}">
+						<el-table-column label="序号" type="index" header-align="center" min-width="4%">
+						</el-table-column>
+						<el-table-column label="起点里程" align="center" header-align="center" min-width="20%"> 
+							<template slot-scope="scope">
+								<span>{{scope.row.startAllMileage}}</span>
+							</template>
+						</el-table-column>
+						<el-table-column label="终点里程" align="center" header-align="center" min-width="20%">
+							<template slot-scope="scope">
+							   <span>{{scope.row.endAllMileage}}</span>
+							</template>
+						</el-table-column>
+						<el-table-column label="长度(m)" min-width="15%" :show-overflow-tooltip="true">
+							<template slot-scope="scope">
+								<input type="text" v-model="scope.row.length" class="excelEdit"   @blur='calcEndM(scope)'  @keydown="inputEnterM($event,scope)"/>
+							</template>
+						</el-table-column>
+						<el-table-column label="围岩级别" align="center" header-align="center" min-width="15%">
+							<template slot-scope="scope">
+								 <el-select v-model="scope.row.extra.name" filterable allow-create placeholder="请选择">
+								     <el-option
+								       v-for="item,index in levelList"
+								       :key="item"
+								       :label="item"
+								       :value="item">
+								     </el-option>
+								   </el-select>
+							</template>
+						</el-table-column>
+						<el-table-column label="衬砌类型" align="center"  min-width="26%" :show-overflow-tooltip="true">
+							<template slot-scope="scope">
+								 <el-select v-model="scope.row.extra.typeValue" filterable allow-create placeholder="请选择"  @change="fnChange(scope)">
+								     <el-option
+								       v-for="item,index in typeList"
+								       :key="item.value"
+								       :label="item.label"
+								       :value="item.value">
+								     </el-option>
+								   </el-select>
+							</template>
+						</el-table-column>
+						<el-table-column label="开挖方法" align="center" header-align="center" min-width="13%">
+							<template slot-scope="scope">
+								<el-select v-model="scope.row.extra.digName" filterable allow-create placeholder="请选择">
+								    <el-option
+								      v-for="item,index in digList"
+								      :key="item"
+								      :label="item"
+								      :value="item">
+								    </el-option>
+								  </el-select>
+							</template>
+						</el-table-column>
+						<el-table-column label="采用图号" align="center" header-align="center" min-width="13%">
+							<template slot-scope="scope">
+								<input type="text" v-model="scope.row.extra.figureNumber" class="excelEdit"/>
+							</template>
+						</el-table-column>
+						<el-table-column label="超前支护" align="center" header-align="center" min-width="25%">
+							<template slot-scope="scope">
+								<el-select v-model="scope.row.extra.shoringName" filterable allow-create placeholder="请选择" multiple>
+								    <el-option
+								      v-for="item,index in shoringList"
+								      :key="item"
+								      :label="item"
+								      :value="item">
+								    </el-option>
+								  </el-select>
+							</template>
+						</el-table-column>
+						<el-table-column label="备注" align="center" header-align="center" min-width="15%">
+							<template slot-scope="scope">
+								 <input type="text" v-model="scope.row.remark" class="excelEdit"/>
+							</template>
+						</el-table-column>
+						<el-table-column label="操作" align="center" header-align="center" min-width="15%">
+							<template slot-scope="scope">
+								<i class="fa fa-trash-alt" title="删除" @click="delEvent(scope.$index)"></i>
+							</template>
+						</el-table-column>
+					</el-table>
+				</el-tab-pane>
+			</el-tabs>
+			<div class="submit">
+				<button v-if="activeName=='second'" class="btnBlue" @click="submitEvent">提交</button>
+				<button v-if="activeName=='first'" class="btnBlue" @click="confirmEvent" style="margin: 0 20px;">编辑</button>
+				<button v-if="activeName=='second'" class="btnBlue" @click="confirmEvent1" style="margin: 0 20px;">保存</button>
+				<button class="btnBlue"  @click="cancelEvent">返回</button>
+			</div>
+		</div>
+	</body>
+</html>
+<script type="text/javascript" src="../../static/js/jquery-1.8.3.js"></script>
+<script type="text/javascript" src="../../static/dx.js"></script>
+<script type="text/javascript" src="../../static/js/vue.js" charset="utf-8"></script>
+<script src="../../static/js/component.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../static/js/elementui.js"></script>
+<script src="../../static/ztree/jquery.ztree.all.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../static/laydate/laydate.js" type="text/javascript" charset="utf-8"></script>
+
+<script type="text/javascript">
+	var vm = new Vue({
+		el: "#table",
+		data: {
+			activeName:'first',
+			id:'',
+			mileObj:{
+				extra:{
+					liningType:{
+						value:'',
+						label:''
+					}
+				}
+			},
+			planeArr:[],
+			planeSignArr:[],
+			profileArr:[],
+			mileageList:[],
+			typeList:[],
+			levelList:[
+				'I',
+				'II',
+				'III',
+				'IV',
+				'V',
+				'VI'
+			],
+			digList:[
+				'全断面法','微台阶法','环形开挖预留核心土','双侧壁导坑法','中洞法','中隔壁法（CD法)','交叉中隔壁法（CRD法)','明挖法','两台阶法','三台阶法','台阶法加临时横撑','台阶法加临时仰拱','单侧壁导坑法','侧洞法','盾构','TBM'
+			],
+			shoringList:[
+				'超前小导管','超前中管棚','超前大管棚','超前帷幕注浆'
+			],
+		},
+		mounted: function() {
+            this.id=DX.getParam('id')
+			console.log(this.id);
+			// 获取衬砌类型
+			this.getType();
+			this.getDetail();
+		},
+		methods: {
+			getMileage:function(){
+				var that=this;
+				DX.ajax_method({
+					'url': '/wbsp/building/listBuildingMileage',
+					'param': {
+						'buildingId':that.id
+					},
+					'callBack': function(res) {
+						if (res.code == 200) {
+							if(res.data.length==0){
+								// 里程数组
+								var obj={
+									extra:{
+										typeValue:''
+									},
+									startMileage:'',
+									startAllMileage:'',
+									endAllMileage:'',
+									length:'',
+									endMileage:'',
+									remark:''
+								}
+								obj.length=res.data.totalLength;
+								obj.startAllMileage=res.data.startAllMileage;
+								obj.endAllMileage=res.data.endAllMileage
+								obj.startMileage=res.data.startMileage;
+								obj.endMileage=res.data.endMileage;
+								that.mileageList.push(obj);
+							}
+							else{
+								for(var i=0;i<res.data.length;i++){
+									res.data[i].extra=JSON.parse(res.data[i].extra);
+									var obj={
+										extra:{},
+										startMileage:'',
+										startAllMileage:'',
+										endAllMileage:'',
+										length:'',
+										endMileage:'',
+										remark:''
+									}
+									obj.startMileage=res.data[i].startMileage;
+									obj.startAllMileage=that.format(res.data[i].startMileage,that.mileObj.mileagePrefix,that.mileObj.mileageFormat);
+									obj.endMileage=res.data[i].endMileage;
+									obj.endAllMileage=that.format(res.data[i].endMileage,that.mileObj.mileagePrefix,that.mileObj.mileageFormat);
+									obj.length=res.data[i].length;
+									obj.remark=res.data[i].remark;
+									obj.extra=res.data[i].extra;
+									obj.extra.typeValue=res.data[i].extra.liningType.value;
+									that.mileageList.push(obj);
+								}
+							}
+							
+						} else {
+							alert(res.msg);
+						}
+					}
+				})
+			},	
+			getType:function(){
+				var that=this;
+				DX.ajax_method({
+					'url': '/wbsp/building/getLiningDictList',
+					'callBack': function(res) {
+						if (res.code == 200) {
+							that.typeList=res.data;
+						} else {
+							alert(res.msg);
+						}
+					}
+				})
+			},
+			handleClick:function(){
+				console.log(this.activeName);
+			},
+			confirmEvent1:function(){
+				var that=this;
+				var mileageVos=[]
+				for(var i=0;i<that.mileageList.length;i++){
+					var obj={
+						extra:{
+							liningType:{value:'',label:''}
+						},
+						idBuilding:'',
+						startMileage:'',
+						endMileage:'',
+						length:'',
+						name:'',
+						remark:'',
+					}
+					obj.idBuilding=that.id;
+					obj.startMileage=that.mileageList[i].startMileage;
+					obj.endMileage=that.mileageList[i].endMileage;
+					obj.length=that.mileageList[i].length;
+					obj.name=that.mileageList[i].startAllMileage+'~'+that.mileageList[i].endAllMileage+'-'+that.mileageList[i].extra.name;
+					obj.remark=that.mileageList[i].remark;
+					// 添加
+					if(that.mileageList[i].extra.typeName==''){
+						obj.extra.liningType.label=that.mileageList[i].extra.typeValue;
+						obj.extra.liningType.value=that.mileageList[i].extra.typeName;
+					}
+					else{
+						obj.extra.liningType.label=that.mileageList[i].extra.typeName;
+						obj.extra.liningType.value=that.mileageList[i].extra.typeValue;
+					}
+					obj.extra.name=that.mileageList[i].extra.name;
+					obj.extra.digName=that.mileageList[i].extra.digName;
+					obj.extra.figureNumber=that.mileageList[i].extra.figureNumber;
+					obj.extra.shoringName=that.mileageList[i].extra.shoringName;
+					obj.extra=JSON.stringify(obj.extra);
+					mileageVos.push(obj);
+				}
+				console.log(mileageVos);
+				DX.ajax_method({
+					'url': '/wbsp/building/saveOrUpdateBuildingMileage',
+					'data':mileageVos,
+					'type':'POST',
+					'callBack': function(res) {
+						if (res.code == 200) {
+							DX.optionTitle('保存成功！');
+							window.location.href=structuresIndex.html;
+						} else {
+							alert(res.msg);
+						}
+					}
+				})
+			},
+			submitEvent:function(){
+				var r = confirm('确认提交吗?');
+				if (r) {
+					var that=this;
+					var mileageVos=[]
+					for(var i=0;i<that.mileageList.length;i++){
+						var obj={
+							extra:{
+								liningType:{value:'',label:''}
+							},
+							idBuilding:'',
+							startMileage:'',
+							endMileage:'',
+							length:'',
+							name:'',
+							remark:'',
+						}
+						obj.idBuilding=that.id;
+						obj.startMileage=that.mileageList[i].startMileage;
+						obj.endMileage=that.mileageList[i].endMileage;
+						obj.length=that.mileageList[i].length;
+						obj.name=that.mileageList[i].startAllMileage+'~'+that.mileageList[i].endAllMileage+'-'+that.mileageList[i].extra.name;
+						obj.remark=that.mileageList[i].remark;
+						// 添加
+						if(that.mileageList[i].extra.typeName==''){
+							obj.extra.liningType.label=that.mileageList[i].extra.typeValue;
+							obj.extra.liningType.value=that.mileageList[i].extra.typeName;
+						}
+						else{
+							obj.extra.liningType.label=that.mileageList[i].extra.typeName;
+							obj.extra.liningType.value=that.mileageList[i].extra.typeValue;
+						}
+						obj.extra.name=that.mileageList[i].extra.name;
+						obj.extra.digName=that.mileageList[i].extra.digName;
+						obj.extra.figureNumber=that.mileageList[i].extra.figureNumber;
+						obj.extra.shoringName=that.mileageList[i].extra.shoringName;
+						obj.extra=JSON.stringify(obj.extra);
+						mileageVos.push(obj);
+					}
+					console.log(mileageVos);
+					DX.ajax_method({
+						'url': '/wbsp/building/saveOrUpdateBuildingMileage',
+						'data':mileageVos,
+						'type':'POST',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle('提交成功！');
+								window.location.href=structuresIndex.html;
+							} else {
+								alert(res.msg);
+							}
+						}
+					})
+				}
+			},
+			delEvent:function(index){
+				this.mileageList.splice(index,1)
+			},
+			fnChange:function(scope){
+				var labelArr=[];
+				var valueArr=[];
+				for(var i=0;i<this.typeList.length;i++){
+					labelArr.push(this.typeList[i].label);
+					valueArr.push(this.typeList[i].value);
+				}
+				console.log(valueArr);
+				console.log(labelArr);
+				if(labelArr.indexOf(scope.row.extra.typeValue)==-1&&valueArr.indexOf(scope.row.extra.typeValue)==-1){
+					this.$set(this.mileageList[scope.$index].extra,"typeName",'');
+					this.$set(this.mileageList[scope.$index].extra,"typeValue",scope.row.extra.typeValue);
+				}
+				else{
+					console.log(scope.row.extra.typeValue);
+					for(var i=0;i<this.typeList.length;i++){
+						if(this.typeList[i].value==scope.row.extra.typeValue){
+							this.$set(this.mileageList[scope.$index].extra,"typeName",this.typeList[i].label);
+						}
+					}
+				}
+			},	
+			download: function(fid) {
+				DX.DownLoadFile({
+					url: '/wbsp/file/download?fid=' + fid,
+				})
+			},
+			getDetail:function(){
+				var that=this;
+				DX.ajax_method({
+					'url': '/wbsp/building/getBuilding',
+					'param': {
+						'buildingId':that.id
+					},
+					'callBack': function(res) {
+						if (res.code == 200) {
+							// 获取里程表
+							that.getMileage();
+							
+							res.data.extra=JSON.parse(res.data.extra);
+							for(var i=0;i<res.data.attachmentVos.length;i++){
+								if(res.data.attachmentVos[i].subType==0){
+									that.planeArr.push(res.data.attachmentVos[i]);
+								}
+								else if(res.data.attachmentVos[i].subType==1){
+									that.planeSignArr.push(res.data.attachmentVos[i]);
+								}
+								else if(res.data.attachmentVos[i].subType==2){
+									that.profileArr.push(res.data.attachmentVos[i]);
+								}
+								
+							}
+							res.data.startAllMileage=that.format(res.data.startMileage,res.data.mileagePrefix,res.data.mileageFormat);
+							res.data.endAllMileage=that.format(res.data.endMileage,res.data.mileagePrefix,res.data.mileageFormat);
+							that.mileObj=res.data;
+						} else {
+							alert(res.msg);
+						}
+					}
+				})
+			},
+			
+			format:function(value, prefix, format){
+				var K_SYMBOL = "K";
+				var L_SYMBOL = "+";
+				// 123456.7
+				var valueStr = value.toString();
+				var indexOfPot = valueStr.lastIndexOf(".");
+				var decimalStr = "0." + ((indexOfPot == -1) ? "000" : valueStr.substring(indexOfPot + 1))
+				var decimal = parseFloat(decimalStr);
+				// 获取公里级
+				var kilemeter = parseInt(value / 1000);
+				// 获取米级 带小数
+				var meter = parseInt(value) - kilemeter * 1000 + decimal;
+				
+				switch(format){
+					case "K#+###.###":
+						return prefix + K_SYMBOL + kilemeter + L_SYMBOL + meter.toFixed(3);
+					case "+###.###":
+						return prefix + L_SYMBOL + meter.toFixed(3);
+					case "K#":
+						return prefix + K_SYMBOL + kilemeter;
+					case "+#":
+						return prefix + L_SYMBOL + meter.toFixed(0);
+					case "K#+###":
+						return prefix + K_SYMBOL + kilemeter + L_SYMBOL + meter.toFixed(0);
+					case "K#+###.##":
+						return prefix + K_SYMBOL + kilemeter + L_SYMBOL + meter.toFixed(2);
+					case "K#+###.#":
+						return prefix + K_SYMBOL + kilemeter + L_SYMBOL + meter.toFixed(1);
+					case "+###.##":
+						return prefix + L_SYMBOL + meter.toFixed(2);
+					case "+###.#":
+						return prefix + L_SYMBOL + meter.toFixed(1);
+					default:
+						return "";
+				}
+			},
+			confirmEvent:function(){
+				window.dialog('add.html?id='+this.id, '编辑构筑物', false, 1000, 700);
+			},
+			cancelEvent:function(){
+				window.location.href="structuresIndex.html"
+			},
+			inputEnterM:function(event,scope){//联动计算
+				var that=this;
+				if(event.keyCode==13){
+					that.calcEndM(scope);
+					return false;
+				}
+			},
+			calcEndM:function(scope,ifCanAdd){//工作面结束里程计算
+				var that=this;
+				var obj = that.mileageList[scope.$index];
+				if(!DX.isNumber(obj.length)||!DX.isNumber(obj.startMileage)){
+					return;
+				}
+				var endMileage=that.accAdd(parseFloat(obj.length),parseFloat(obj.startMileage));
+				var endMileageAll=that.format(endMileage,that.mileObj.mileagePrefix,that.mileObj.mileageFormat)
+				that.$set(that.mileageList[scope.$index],"endMileage",endMileage);
+				that.$set(that.mileageList[scope.$index],"endAllMileage",endMileageAll);
+				if(that.mileageList.length>scope.$index+1){
+					that.$set(that.mileageList[scope.$index+1],"startAllMileage",endMileageAll);
+					that.$set(that.mileageList[scope.$index+1],"startMileage",endMileage);
+					that.calcEndM({$index:scope.$index+1},true);
+				}
+				else if(that.mileageList.length==scope.$index+1&& !ifCanAdd){
+					that.AddEvent();
+				}
+				else if(that.mileageList.length==scope.$index+1&&ifCanAdd){
+					var endAll=that.format(that.mileObj.endMileage,that.mileObj.mileagePrefix,that.mileObj.mileageFormat)
+					var length=that.accSub(that.mileObj.endMileage,obj.startMileage);
+					that.$set(that.mileageList[scope.$index],"length",length);
+					that.$set(that.mileageList[scope.$index],"endMileage",that.mileObj.endMileage);
+					that.$set(that.mileageList[scope.$index],"endAllMileage",endAll);
+				}
+			},
+			AddEvent:function(){
+				var that = this;
+				var start =that.mileageList.length<=0?'':that.mileageList[that.mileageList.length-1].endMileage;
+				var startAll=that.format(start,that.mileObj.mileagePrefix,that.mileObj.mileageFormat);
+				var endAll=that.format(that.mileObj.endMileage,that.mileObj.mileagePrefix,that.mileObj.mileageFormat)
+				var length=that.accSub(that.mileObj.endMileage,start);
+				if(length<=0){
+                    that.$set(that.mileageList[that.mileageList.length-1],"endAllMileage",endAll);
+					that.$set(that.mileageList[that.mileageList.length-1],"endMileage",that.mileObj.endMileage);
+					var finalLength=that.accSub(that.mileageList[that.mileageList.length-1].endMileage,that.mileageList[that.mileageList.length-1].startMileage);
+					that.$set(that.mileageList[that.mileageList.length-1],"length",finalLength);
+					return;
+				}
+				var obj = {
+				 extra:{},
+				 name:'',
+				 startMileage:start,
+				 startAllMileage:startAll,
+				 endAllMileage:endAll,
+				 length:length,
+				 endMileage:that.mileObj.endMileage
+				};
+				that.mileageList.push(obj);
+			},
+			accSub:function(arg1,arg2){
+			    var r1,r2,m,n;
+			    try{r1=arg1.toString().split(".")[1].length}catch(e){r1=0}
+			    try{r2=arg2.toString().split(".")[1].length}catch(e){r2=0}
+			    m=Math.pow(10,Math.max(r1,r2));
+			    //last modify by deeka
+			    //动态控制精度长度
+			    n=(r1>=r2)?r1:r2;
+			    return ((arg1*m-arg2*m)/m).toFixed(n);
+			},
+			accAdd:function(arg1,arg2){
+				var r1,r2,m;
+				try{r1=arg1.toString().split(".")[1].length}catch(e){r1=0}
+				try{r2=arg2.toString().split(".")[1].length}catch(e){r2=0}
+				m=Math.pow(10,Math.max(r1,r2))
+				return (arg1*m+arg2*m)/m
+			}
+		},
+		filters:{
+			
+		},
+	})
+</script>

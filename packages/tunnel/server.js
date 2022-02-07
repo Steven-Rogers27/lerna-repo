@@ -7,17 +7,16 @@ const app = express();
 const config = require('./webpack.config');
 const compiler = webpack(config);
 
-const PORT = 3000;
-const appName = 'planAhead';
+const PORT = 3001;
+const appName = 'tunnel';
 // 目录名
 const dirNames = [
-	'/ladong/planAhead/',
+	'/tunnel/',
 ];
 
 const entryPage = {
-	'/ladong/planAhead/': 'newList.html',
+  '/tunnel/': 'plan.html',
 };
-	
 
 app.use(
 	webpackDevMiddleware(compiler, {
@@ -26,10 +25,10 @@ app.use(
 	})
 );
 app.use(/^\/$/, (req, res, next) => {
-	// 把output.publicPath设为默认首页的路径，newList.html设为默认首页
+	// 把output.publicPath设为默认首页的路径
 	res.redirect(path.posix.join(config.output.publicPath, entryPage[config.output.publicPath]));
 });
-// 把形如/ladong/planAhead这样的请求重定向到/ladong/planAhead/newList.html
+// 当请求路径是目录，且没有后缀'/'时，给其后拼上'/'
 dirNames.forEach((name) => {
 	app.use(name.slice(0, -1), (req, res, next) => {
 		res.redirect(path.posix.join(name, entryPage[name]));
@@ -39,6 +38,7 @@ app.use(express.static(path.join(__dirname, config.output.publicPath), {
 	redirect: true,
 	index: entryPage[config.output.publicPath],
 }));
+
 app.listen(PORT, () => {
 	console.log(`${appName} app listening on port ${PORT}!\n`);
 });

@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<link rel="stylesheet" href="../../static/common.css">
+		<link rel="stylesheet" href="../../static/elementui.css">
+		<link rel="stylesheet" type="text/css" href="../../static/ztree/zTreeStyle.css" />
+		<style type="text/css">
+			[v-cloak] {
+				display: none;
+			}
+
+			#addfactory {
+				height: 100%;
+			}
+			.el-select{
+				width: 70%;
+			}
+			.el-select-dropdown__wrap{
+				max-height: 200px;
+			}
+			.boxItem {
+				width: 100%;
+				display: flex;
+				align-items: center;
+			}
+			.boxTop{
+				display: flex;
+				justify-content: space-between;
+			}
+			.boxLeft,.boxRight{
+				width:50%
+			}
+			.percentInput{
+				width:70%;
+			}
+			em{
+				color: red;
+			}
+			.titleBold {
+				display: block;
+				line-height: 28px;
+				text-align: right;
+				width: 90px;
+				margin-right: 5px;
+			}
+			.titleBoldRight{
+				display: block;
+				line-height: 28px;
+				text-align: right;
+				width: 130px;
+				margin-right: 5px;
+			}
+			.titleBoldLeft{
+				display: block;
+				line-height: 28px;
+				text-align: right;
+				width: 100px;
+				margin-right: 5px;
+			}
+			.submit {
+				margin: 20px 0 20px 0;
+				display: flex;
+			
+				justify-content: center;
+				align-items: center;
+			}
+			.desc {
+				display: flex;
+				align-items: center;
+				box-sizing: border-box;
+				width: 100%;
+				height: 60px;
+				line-height: 1.6em;
+				padding: 10px;
+				border: none;
+				resize: none;
+			}
+			.box{
+				display: flex;
+				align-items: center;
+				flex-direction: row;
+				flex-wrap: nowrap;
+				width: 100%;
+			}
+			.boxFile{
+				width: 100%;
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: flex-start;
+				flex-direction: row;
+				align-items: flex-start;
+				align-content: flex-start;
+			}
+			.fileStyle {
+			    border: 1px solid #c8c6cc;
+			    border-radius: 4px;
+			    padding: 4px 6px;
+			    margin-right: 10px;
+			    height: 19px;
+			    margin-bottom: 5px;
+			}
+			.mt5{
+				margin-top: 5px;
+			}
+			.Titleinfo {
+			    border-left: 3px solid rgb(0, 150, 136);
+			    color: rgb(0, 150, 136);
+			    font-weight: bold;
+			    padding-left: 5px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="addfactory" v-cloak>
+			<p class="Titleinfo mt10">基本信息</p>
+			<div class="boxItem  mt10">
+				<span class='titleBoldLeft'>
+					构筑物名称:
+				</span>
+				<el-input class="percentInput" placeholder="请输入构筑物名称"  style="width: 88.2%;" v-model="name"></el-input>
+			</div>
+			<div class="boxTop">
+				<div class="boxLeft">
+					<div class="boxItem mt10">
+						<span class='titleBoldLeft'>
+							构筑物类型:
+						</span>
+						<el-select v-model="typeName" filterable  placeholder="请选择" class="percentInput">
+						    <el-option
+						      v-for="item,index in typeList"
+						      :key="item.code"
+						      :label="item.name"
+						      :value="item.code">
+						    </el-option>
+						  </el-select>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldLeft'>构筑物状态:</span>
+						<el-select class="percentInput" placeholder="请选择" v-model="tunnelState">
+							<el-option
+							  v-for="item in tunnelArr"
+							  :key="item"
+							  :label="item"
+							  :value="item">
+							</el-option>
+						</el-selet>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldLeft'>
+							计划开工日期:
+						</span>
+						<el-date-picker
+						      v-model="planStartTime"
+						      type="date"
+						      placeholder="请选择" 
+							  format='yyyy-MM-dd'
+							  value-format='yyyy-MM-dd'
+							  :clearable='false'
+							  style="width:70%"
+							  :picker-options="pickerStart">
+						</el-date-picker>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldLeft'>
+							计划结束日期:
+						</span>
+						<el-date-picker
+						      v-model="planendTime"
+						      type="date"
+						      placeholder="请选择" 
+							  format='yyyy-MM-dd'
+							  value-format='yyyy-MM-dd'
+							  :clearable='false'
+							  style="width:70%"
+							  :picker-options="pickerEnd"
+					      >
+						</el-date-picker>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldLeft'>
+							报警阈值(%):
+						</span>
+						<el-input class="percentInput" placeholder="请输入" v-model="warning" onkeyup="value=value.replace(/^\.+|[^\d.]/g,'')"></el-input>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldLeft'>
+							设计速度(km/h):
+						</span>
+						<el-input class="percentInput" placeholder="请输入" v-model="speed" onkeyup="value=value.replace(/^\.+|[^\d.]/g,'')"></el-input>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldLeft'>地理位置:</span>
+						<el-select v-model="province" placeholder="省级" filterable  @change="swicthProvince" style="width:90px;margin-right: 10px;">
+						    <el-option
+						      v-for="item in region"
+						      :key="item.name"
+						      :label="item.name"
+						      :value="item.name">
+						    </el-option>
+						  </el-select>
+						  <el-select v-model="city" filterable  placeholder="市级" style="width:100px" v-if="province!='' && cityList.length!=0">
+						      <el-option
+						        v-for="item,index in cityList"
+						        :key="item"
+						        :label="item"
+						        :value="item">
+						      </el-option>
+						    </el-select>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldLeft'>详细位置:</span>
+						<el-input placeholder="请输入" class="percentInput" v-model="location"/></el-input>
+					</div>
+				</div>
+				<div class="boxRight">
+					<div class="boxItem mt10">
+						<span class='titleBoldRight'>
+							里程格式:
+						</span>
+						<el-select class="percentInput" placeholder="请选择" v-model="mileageName">
+							<el-option
+							  v-for="item in mileageArr"
+							  :key="item"
+							  :label="item"
+							  :value="item">
+							</el-option>
+						</el-selet>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldRight'>
+							里程前缀:
+						</span>
+						<el-input class="percentInput" placeholder="请输入" v-model="mileagePrefix"></el-input>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldRight'>
+							起点里程(m):
+						</span>
+						<el-input class="percentInput" placeholder="请输入" v-model="startMileage" onkeyup="value=value.replace(/^\.+|[^\d.]/g,'')" @blur="startEvent"></el-input>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldRight'>
+							终点里程(m):
+						</span>
+						<el-input class="percentInput" placeholder="请输入" v-model="endMileage" onkeyup="value=value.replace(/^\.+|[^\d.]/g,'')" @blur="endEvent"></el-input>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldRight'>中心里程(m):</span>
+						<el-input class="percentInput" placeholder="请输入" v-model="centerMileage" disabled></el-input>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldRight'>构筑物长度(m):</span>
+						<el-input class="percentInput" placeholder="请输入" v-model="totalLength" disabled></el-input>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldRight'>
+							是否重点工程:
+						</span>
+						<div style="display: flex;height: 28px;align-items: center;">
+							<label style="margin-right: 10px;">
+								<input name="important" type="radio" value="true" v-model="important" @click="findProject"/>  是
+							</label>
+							<label>
+								<input name="important" type="radio" value="false" v-model="important" @click="findProject"/>  否
+							</label>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="boxItem mt10">
+				<span class='titleBoldLeft'>
+					构筑物说明:
+				</span>
+				<el-input
+				  type="textarea"
+				  :autosize="{ minRows: 2}"
+				  placeholder="请输入内容"
+				  v-model="explain"
+				  style="width: 88.2%;">
+				</el-input>
+				<!-- <textarea name="message" class="desc percentInput" style="border: 1px solid rgba(228, 228, 228, 1);width: 88.2%;" placeholder="请输入" v-model="explain">
+				</textarea> -->
+			</div>
+			<div class="boxItem mt10">
+				<span class='titleBoldLeft'>
+					平面图:
+				</span>
+				<span class="listToDetail" style="line-height: 28px;" @click="planeImg(0)">上传</span>
+			</div>
+			<div class="boxItem mt5" v-if="planeArr.length>0">
+				<div class="box " style="margin-left: 100px;">
+					<div style="width:calc(100% - 100px);" class="boxFile">
+						<div v-for="(obj,i) in planeArr" class="fileStyle">
+							<span @click="openfile(obj)" class="fileName">{{obj.name}}</span>
+							<span class="listToDetail" style="color:red;" @click="delAttachment(i)">删除</span>
+							<span class="listToDetail" style="margin: 0;margin-right: 3px;" @click="download(obj.encodeFileId)">下载</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="boxItem mt10">
+				<span class='titleBoldLeft'>
+					平面示意图:
+				</span>
+				<span class="listToDetail" style="line-height: 28px;" @click="planeImg(1)">上传</span>
+			</div>
+			<div class="boxItem mt5" v-if="planeSignArr.length>0">
+				<div class="box" style="margin-left: 100px;">
+					<div style="width:calc(100% - 100px);" class="boxFile">
+						<div v-for="(obj,i) in planeSignArr" class="fileStyle">
+							<span @click="openfile(obj)" class="fileName">{{obj.name}}</span>
+							<span class="listToDetail" style="color:red;" @click="delAttachment1(i)">删除</span>
+							<span class="listToDetail" style="margin: 0;margin-right: 3px;" @click="download(obj.encodeFileId)">下载</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="boxItem mt10">
+				<span class='titleBoldLeft'>
+					纵断面图:
+				</span>
+				<span class="listToDetail" style="line-height: 28px;" @click="planeImg(2)">上传</span>
+			</div>
+			<div class="boxItem mt5" v-if="profileArr.length>0">
+				<div class="box" style="margin-left: 100px;">
+					<div style="width:calc(100% - 100px);" class="boxFile">
+						<div v-for="(obj,i) in profileArr" class="fileStyle">
+							<span @click="openfile(obj)" class="fileName">{{obj.name}}</span>
+							<span class="listToDetail" style="color:red;" @click="delAttachment2(i)">删除</span>
+							<span class="listToDetail" style="margin: 0;margin-right: 3px;" @click="download(obj.encodeFileId)">下载</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="boxItem mt10">
+				<span class='titleBoldLeft'>
+					备注:
+				</span>
+				<!-- <textarea name="message" class="desc percentInput" style="border: 1px solid rgba(228, 228, 228, 1);width: 89.2%;" placeholder="请输入" v-model="remark">
+				</textarea> -->
+				<el-input
+				  type="textarea"
+				  :autosize="{ minRows: 2}"
+				  placeholder="请输入内容"
+				  v-model="remark"
+				  style="width: 88.2%;">
+				</el-input>
+			</div>
+			<p class="Titleinfo mt10">特征信息</p>
+			<div class="boxTop">
+				<div class="boxLeft">
+					<div class="boxItem mt10">
+						<span class='titleBoldLeft'>隧道长度分类:</span>
+						<el-select class="percentInput" placeholder="请选择" v-model="tunnelName">
+							<el-option
+							  v-for="item in tunnelType"
+							  :key="item"
+							  :label="item"
+							  :value="item">
+							</el-option>
+						</el-selet>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldLeft'>开挖面积(㎡):</span>
+						<el-select class="percentInput" placeholder="请选择" v-model="grubName">
+							<el-option
+							  v-for="item in grubArr"
+							  :key="item"
+							  :label="item"
+							  :value="item">
+							</el-option>
+						</el-selet>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldLeft'>最大深埋(m):</span>
+						<el-input class="percentInput" placeholder="请输入" v-model="bigBury"></el-input>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldLeft'>单线或双线:</span>
+						<el-select class="percentInput" placeholder="请选择" v-model="lineName">
+							<el-option
+							  v-for="item in LineArr"
+							  :key="item"
+							  :label="item"
+							  :value="item">
+							</el-option>
+						</el-selet>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldLeft'>施工方法:</span>
+						<el-select class="percentInput" placeholder="请选择" v-model="buildName">
+							<el-option
+							  v-for="item in buildArr"
+							  :key="item"
+							  :label="item"
+							  :value="item">
+							</el-option>
+						</el-selet>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldLeft'>目前作业面:</span>
+						<el-input class="percentInput" placeholder="请输入" v-model="workArea"></el-input>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldLeft'>
+							出渣运输类型:
+						</span>
+						<el-select class="percentInput" placeholder="请选择" v-model="transportName">
+							<el-option
+							  v-for="item in transportArr"
+							  :key="item"
+							  :label="item"
+							  :value="item">
+							</el-option>
+						</el-selet>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldLeft'>
+							设计正洞作业面:
+						</span>
+						<el-input class="percentInput" placeholder="请输入" v-model="designWorkArea"></el-input>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldLeft'>
+							隧道风险等级:
+						</span>
+						<el-input class="percentInput" placeholder="请输入" v-model="riskLevel"></el-input>
+					</div>
+				</div>
+				<div class="boxRight">
+					<div class="boxItem mt10">
+						<span class='titleBoldRight'>
+							道床开始日期:
+						</span>
+						<el-date-picker
+						      v-model="roadStartTime"
+						      type="date"
+						      placeholder="请选择" 
+							  format='yyyy-MM-dd'
+							  value-format='yyyy-MM-dd'
+							  :clearable='false'
+							  style="width:70%"
+							  :picker-options="pickerStart1">
+						</el-date-picker>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldRight'>
+							道床结束日期:
+						</span>
+						<el-date-picker
+						      v-model="roadEndTime"
+						      type="date"
+						      placeholder="请选择" 
+							  format='yyyy-MM-dd'
+							  value-format='yyyy-MM-dd'
+							  :clearable='false'
+							  style="width:70%"
+							  :picker-options="pickerEnd1">
+						</el-date-picker>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldRight'>
+							铺轨开始日期:
+						</span>
+						<el-date-picker
+						      v-model="trackStartTime"
+						      type="date"
+						      placeholder="请选择" 
+							  format='yyyy-MM-dd'
+							  value-format='yyyy-MM-dd'
+							  :clearable='false'
+							  style="width:70%"
+							  :picker-options="pickerStart2" >
+						</el-date-picker>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldRight'>
+							铺轨结束日期:
+						</span>
+						<el-date-picker
+						      v-model="trackEndTime"
+						      type="date"
+						      placeholder="请选择" 
+							  format='yyyy-MM-dd'
+							  value-format='yyyy-MM-dd'
+							  :clearable='false'
+							  style="width:70%"
+							  :picker-options="pickerEnd2">
+						</el-date-picker>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldRight'>
+							贯通日期:
+						</span>
+						<el-date-picker
+						      v-model="throughTime"
+						      type="date"
+						      placeholder="请选择" 
+							  format='yyyy-MM-dd'
+							  value-format='yyyy-MM-dd'
+							  :clearable='false'
+							  style="width:70%">
+						</el-date-picker>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldRight'>
+							是否与其它单位对打:
+						</span>
+						<div style="display: flex;height: 28px;align-items: center;">
+							<label style="margin-right: 10px;">
+								<input name="fight" type="radio" value="1" v-model="fight"/>  是
+							</label>
+							<label>
+								<input name="fight" type="radio" value="0" v-model="fight"/>  否
+							</label>
+						</div>
+					</div>
+					<div class="boxItem mt10">
+						<span class='titleBoldRight'>
+							是否通过架桥机:
+						</span>
+						<div style="display: flex;height: 28px;align-items: center;">
+							<label style="margin-right: 10px;">
+								<input name="bridge" type="radio" value="1" v-model="bridge"/>  是
+							</label>
+							<label>
+								<input name="bridge" type="radio" value="0" v-model="bridge"/>  否
+							</label>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="boxItem mt10">
+				<span class='titleBoldLeft'>
+					风险地质:
+				</span>
+				<el-input class="percentInput" placeholder="请输入"  style="width: 88.2%;" v-model="riskGeology"></el-input>
+			</div>
+			<div class="boxItem mt10">
+				<span class='titleBoldLeft'>
+					不良地质情况:
+				</span>
+				<el-input class="percentInput" placeholder="请输入"  style="width: 88.2%;" v-model="badGeology"></el-input>
+			</div>
+			<div class="submit">
+				<button class="btnBlue" style="margin: 0 20px;" @click="cancelEvent">取消</button>
+				<button class="btnBlue" @click="confirmEvent">保存</button>
+			</div>
+			<!-- 上传大样图 -->
+			<input type="file" id="cardupPic" style="display: none;">
+		</div>
+	</body>
+</html>
+<script type="text/javascript" src="../../static/js/jquery-1.8.3.js"></script>
+<script type="text/javascript" src="../../static/dx.js"></script>
+<script type="text/javascript" src="../../static/js/vue.js" charset="utf-8"></script>
+<script src="../../static/js/component.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../static/js/elementui.js"></script>
+<script src="../../static/ztree/jquery.ztree.all.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="../static/js/region.js"></script>
+<script type="text/javascript">
+	var vm = new Vue({
+		el: "#addfactory",
+		data: {
+			// 计划开工日期
+			planStartTime:'',
+			// 计划结束日期
+			planendTime:'',
+            // 道床开始日期
+			roadStartTime:'',
+			// 道床结束日期
+			roadEndTime:'',
+			// 铺轨开始日期
+			trackStartTime:'',
+			// 铺轨结束日期
+			trackEndTime:'',
+			// 贯通日期
+			throughTime:'',
+			province:'',
+			region: '', //省市信息
+			cityList:[],
+			city:'',
+			// 隧道类型
+			tunnelType:[
+				'短隧道（L≤500m）',
+				'中长隧道（500＜L＜1000m）',
+				'长隧道（1000≤L≤3000m）',
+				'特长隧道（L＞3000m）',
+				'特长隧道（5000-10000m）',
+				'特长隧道（10000m以上）'
+			],
+			tunnelName:'',
+			// 开挖面积
+			grubArr:[
+				'小于60',
+				'大于或等于60'
+			],
+			grubName:'',
+			// 单线或双线
+			LineArr:[
+				'单线隧道',
+				'双线隧道',
+				'分岔及多线隧道'
+			],
+			lineName:'',
+			// 施工方法
+			buildArr:[
+				'钻爆法',
+				'掘进机(TBM)法',
+				'盾构法',
+				'明挖法'
+			],
+			buildName:'',
+			// 隧道状态
+			tunnelArr:[
+				'未开工',
+				'建设中',
+				'已完成',
+				'停工'
+			],
+			tunnelState:'',
+			// 出渣运输类型
+			transportArr:[
+				'单线隧道',
+				'双线隧道',
+				'分岔及多线隧道'
+			],
+			transportName:'',
+			// 平面图
+			planeArr:[],
+			// 平面示意图
+			planeSignArr:[],
+			// 纵断面图
+			profileArr:[],
+			imgType:'',
+			// 起点里程
+			startMileage:'',
+			// 终点里程
+			endMileage:'',
+			// 里程格式
+			mileageArr:[
+				'K#+###.###',
+				'+###.###',
+				'K#',
+				'+#',
+				'K#+###',
+				'K#+###.##',
+				'K#+###.#',
+				'+###.##',
+				'+###.#'
+			],
+			mileageName:'',
+			// 详细位置
+			location:'',
+			// 里程前缀
+			mileagePrefix:'',
+			name:'',
+			remark:'',
+			// 构筑物类型
+			typeList:[],
+			typeName:'',
+			// 中心里程
+			centerMileage:'',
+			// 隧道长度
+			totalLength:'',
+			// 最大深埋
+			bigBury:'',
+			// 作业面积
+			workArea:'',
+			// 风险地质标识
+			riskSign:'',
+			// 风险地质
+			riskGeology:'',
+			// 不良地质情况
+			badGeology:'',
+			// 构筑物说明
+			explain:'',
+			// 设计速度
+			speed:'',
+			// 设计正洞作业面
+			designWorkArea:'',
+			riskLevel:'',
+			// 报警阈值
+			warning:'',
+			// 重点工程1-是 0-否
+			important:'false',
+			// 是否与其它单位对打
+			fight:'0',
+			bridge:'0',
+			id:'',
+			pickerEnd: {
+				 disabledDate:function(time) {
+					var compareTime=new Date(vm.planStartTime);
+					return time.getTime() < compareTime.getTime();
+				 },
+			},
+			pickerStart:{
+				disabledDate:function(time) {
+					var compareTime=new Date(vm.planendTime);
+					return time.getTime() > compareTime.getTime();
+				},
+			},
+			pickerStart1:{
+				disabledDate:function(time) {
+					var compareTime=new Date(vm.roadEndTime);
+					return time.getTime() > compareTime.getTime();
+				},
+			},
+			pickerEnd1:{
+				disabledDate:function(time) {
+					var compareTime=new Date(vm.roadStartTime);
+					return time.getTime() < compareTime.getTime();
+				},
+			},
+			pickerStart2:{
+				disabledDate:function(time) {
+					var compareTime=new Date(vm.trackEndTime);
+					return time.getTime() > compareTime.getTime();
+				},
+			},
+			pickerEnd2:{
+				disabledDate:function(time) {
+					var compareTime=new Date(vm.trackStartTime);
+					return time.getTime() < compareTime.getTime();
+				},
+			}
+		},
+		mounted: function() {
+			this.region = json;
+			this.id=DX.getParam('id');
+			if(this.id){
+				// 获取构筑物
+				this.getDetail(this.id);
+			}	
+			// 获取构筑物类型
+			this.getType();
+		},
+		methods: {
+			startEvent:function(){
+				if(!DX.isNumber(this.startMileage)||!DX.isNumber(this.endMileage)){
+					return;
+				}
+				if(this.accSub(this.endMileage,this.startMileage)<0){
+					DX.optionTitle('起点里程不可大于终点里程');
+					this.startMileage='';
+				}
+				this.totalLength=this.accSub(this.endMileage,this.startMileage);
+				this.centerMileage=(Number((this.endMileage-this.startMileage)/2)+Number(this.startMileage)).toFixed(3);
+			},
+			endEvent:function(){
+				if(!DX.isNumber(this.startMileage)||!DX.isNumber(this.endMileage)){
+					return;
+				}
+				if(this.accSub(this.endMileage,this.startMileage)<0){
+					DX.optionTitle('终点里程不可小于起点里程');
+					this.endMileage='';
+				}
+				this.totalLength=this.accSub(this.endMileage,this.startMileage);
+				this.centerMileage=(Number((this.endMileage-this.startMileage)/2)+Number(this.startMileage)).toFixed(3);
+			},
+			accSub:function(arg1,arg2){
+			    var r1,r2,m,n;
+			    try{r1=arg1.toString().split(".")[1].length}catch(e){r1=0}
+			    try{r2=arg2.toString().split(".")[1].length}catch(e){r2=0}
+			    m=Math.pow(10,Math.max(r1,r2));
+			    //last modify by deeka
+			    //动态控制精度长度
+			    n=(r1>=r2)?r1:r2;
+			    return ((arg1*m-arg2*m)/m).toFixed(n);
+			},
+			getDetail:function(id){
+				var that=this;
+				DX.ajax_method({
+					'url': '/wbsp/building/getBuilding',
+					'param': {
+						'buildingId':id
+					},
+					'callBack': function(res) {
+						if (res.code == 200) {
+							res.data.extra=JSON.parse(res.data.extra)
+							for(var i=0;i<res.data.attachmentVos.length;i++){
+								if(res.data.attachmentVos[i].subType==0){
+									that.planeArr.push(res.data.attachmentVos[i]);
+								}
+								else if(res.data.attachmentVos[i].subType==1){
+									that.planeSignArr.push(res.data.attachmentVos[i]);
+								}
+								else if(res.data.attachmentVos[i].subType==2){
+									that.profileArr.push(res.data.attachmentVos[i]);
+								}
+							}
+							that.name=res.data.name;
+							that.typeName=res.data.type;
+							that.mileagePrefix=res.data.mileagePrefix;
+							that.mileageName=res.data.mileageFormat;
+							that.startMileage=res.data.startMileage;
+							that.endMileage=res.data.endMileage;
+							that.centerMileage=res.data.extra.centerMileage;
+							that.totalLength=res.data.totalLength;
+							that.tunnelName=res.data.extra.tunnelName;
+							that.grubName=res.data.extra.grubName;
+							that.bigBury=res.data.extra.bigBury;
+							that.lineName=res.data.extra.lineName;
+							that.buildName=res.data.extra.buildName;
+							that.tunnelState=res.data.extra.tunnelState;
+							that.workArea=res.data.extra.workArea;
+							that.province=res.data.province;
+							if(that.province){
+								that.swicthProvince();
+							}
+							that.city=res.data.county;
+							that.location=res.data.location;
+							that.riskSign=res.data.extra.riskSign;
+							that.riskGeology=res.data.extra.riskGeology;
+							that.badGeology=res.data.extra.badGeology;
+							that.explain=res.data.extra.explain;
+							that.remark=res.data.remark;
+							that.planStartTime=res.data.planStartDate;
+							that.planendTime=res.data.planEndDate;
+							that.roadStartTime=res.data.extra.roadStartTime;
+							that.roadEndTime=res.data.extra.roadEndTime;
+							that.trackStartTime=res.data.extra.trackStartTime;
+							that.trackEndTime=res.data.extra.trackEndTime;
+							that.throughTime=res.data.extra.throughTime;
+							that.transportName=res.data.extra.transportName;
+							that.designWorkArea=res.data.extra.designWorkArea;
+							that.riskLevel=res.data.extra.riskLevel;
+							that.warning=res.data.extra.warning;
+							that.important=res.data.important;
+							that.fight=res.data.extra.fight;
+							that.bridge=res.data.extra.bridge;
+							that.speed=res.data.extra.speed;
+						} else {
+							alert(res.msg);
+						}
+					}
+				})
+			},
+			getType:function(){
+				var that=this;
+				DX.ajax_method({
+					'url': '/wbsp/building/getProjectTypes',
+					'param': {
+						'projectId':''
+					},
+					'callBack': function(res) {
+						if (res.code == 200) {
+							that.typeList=res.data;
+						} else {
+							alert(res.msg);
+						}
+					}
+				})
+			},
+			findProject:function(){
+				console.log(this.important);
+			},
+			swicthProvince:function(){
+				this.cityList=[];
+				this.city="";
+				for (var i in this.region) {
+					if (this.region[i].name == this.province) {
+						this.cityList = this.region[i].cities;
+					}
+				}
+				console.log(this.cityList.length);
+			},
+			confirmEvent:function(){
+				var r = confirm('确认保存吗?');
+				if (r) {
+					var buildingVo ={
+						extra:{
+							// 中心里程
+							centerMileage:'',
+							// 隧道类型
+							tunnelName:'',
+							// 开挖面积
+							grubName:'',
+							bigBury:'',
+							lineName:'',
+							buildName:'',
+							tunnelState:'',
+							workArea:'',
+							riskSign:'',
+							riskGeology:'',
+							badGeology:'',
+							explain:'',
+							roadStartTime:'',
+							roadEndTime:'',
+							speed:'',
+							trackStartTime:'',
+							trackEndTime:'',
+							throughTime:'',
+							transportName:'',
+							designWorkArea:'',
+							riskLevel:'',
+							warning:'',
+							fight:'',
+							bridge:''
+						},
+						attachmentVos:[],
+						county:'',
+						endMileage:'',
+						id:'',
+						important:'',
+						location:'',
+						mileageFormat:'',
+						mileagePrefix:'',
+						name:'',
+						planEndDate:'',
+						planStartDate:'',
+						projectId:'',
+						province:'',
+						remark:'',
+						startMileage:'',
+						totalLength:'',
+					    type:'',
+						unit:''
+					};
+					var fileArr=[]
+					for(var i=0;i<this.planeArr.length;i++){
+						fileArr.push(this.planeArr[i]);
+					}
+					for(var i=0;i<this.planeSignArr.length;i++){
+						fileArr.push(this.planeSignArr[i]);
+					}
+					for(var i=0;i<this.profileArr.length;i++){
+						fileArr.push(this.profileArr[i]);
+					}
+					buildingVo.id=this.id;
+					buildingVo.attachmentVos=fileArr;
+					buildingVo.county=this.city;
+					buildingVo.endMileage=this.endMileage;
+					buildingVo.important=this.important;
+					buildingVo.location=this.location;
+					buildingVo.mileageFormat=this.mileageName;
+					buildingVo.mileagePrefix=this.mileagePrefix;
+					buildingVo.name=this.name;
+					buildingVo.planEndDate=this.planendTime;
+					buildingVo.planStartDate=this.planStartTime;
+					buildingVo.province=this.province;
+					buildingVo.remark=this.remark;
+					buildingVo.startMileage=this.startMileage;
+					buildingVo.type=this.typeName;
+					buildingVo.totalLength=this.totalLength;
+					// 新增
+					buildingVo.extra.centerMileage=this.centerMileage;
+					buildingVo.extra.tunnelName=this.tunnelName;
+					buildingVo.extra.grubName=this.grubName;
+					buildingVo.extra.bigBury=this.bigBury;
+					buildingVo.extra.lineName=this.lineName;
+					buildingVo.extra.buildName=this.buildName;
+					buildingVo.extra.tunnelState=this.tunnelState;
+					buildingVo.extra.riskSign=this.riskSign;
+					buildingVo.extra.riskGeology=this.riskGeology;
+					buildingVo.extra.badGeology=this.badGeology;
+					buildingVo.extra.explain=this.explain;
+					buildingVo.extra.roadStartTime=this.roadStartTime;
+					buildingVo.extra.roadEndTime=this.roadEndTime;
+					buildingVo.extra.trackStartTime=this.trackStartTime;
+					buildingVo.extra.trackEndTime=this.trackEndTime;
+					buildingVo.extra.throughTime=this.throughTime;
+					buildingVo.extra.transportName=this.transportName;
+					buildingVo.extra.designWorkArea=this.designWorkArea;
+					buildingVo.extra.workArea=this.workArea;
+					buildingVo.extra.riskLevel=this.riskLevel;
+					buildingVo.extra.warning=this.warning;
+					buildingVo.extra.speed=this.speed;
+					buildingVo.extra.fight=this.fight;
+					buildingVo.extra.bridge=this.bridge;
+					buildingVo.extra=JSON.stringify(buildingVo.extra)
+					console.log(buildingVo);
+					var that=this;
+					DX.ajax_method({
+						'url': '/wbsp/building/saveOrUpdateBuilding',
+						'type': "POST",
+						'data': buildingVo,
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle("保存成功");
+								// 刷新
+								DX.domParent("vm.initDate()")
+								// 关闭弹窗
+								setTimeout(function() {
+									DX.closeModal();
+								}, 1000)
+								
+								
+							} else {
+								alert(res.msg);
+							}
+						}
+					})
+				}
+			},
+			cancelEvent:function(){
+				// 关闭弹窗
+				DX.closeModal()
+			},
+			planeImg:function(i){
+				this.imgType=i;
+				$('#cardupPic').click();
+			},
+			download: function(fid) {
+				DX.DownLoadFile({
+					url: '/wbsp/file/download?fid=' + fid,
+				})
+			},
+			delAttachment: function(index) { //删除附件
+				this.planeArr.splice(index, 1);
+			},
+			delAttachment1:function(index){
+				this.planeSignArr.splice(index, 1);
+			},
+			delAttachment2:function(index){
+				this.profileArr.splice(index, 1);
+			}
+		},
+	})
+</script>
+<script>
+		$('#cardupPic').change(function(e) {
+			var photosItem;
+			// var config = ['png', 'jpg', 'jpeg', 'JPG','pdf'];
+			// var config = ['pdf'];
+			var name = e.target.files[0].name;
+			if (e.target.files[0].name) {
+				var type = e.target.files[0].name.split('.');
+				var size = e.target.files[0].size;
+				// var str = config.indexOf(type[type.length - 1]);
+				// if (str == -1) {
+				// 	DX.optionTitle('请上传jpg/png/pdf格式的文件')
+				// 	return;
+				// }
+				if (size > 1024 * 1024 * 10) {
+					// alert('文件大小不可超过10M');
+					DX.optionTitle('文件大小不可超过10M')
+					return;
+				}
+			}
+			// 上传文件
+			DX.uplaodFile({
+				'id': 'cardupPic',
+				'url': '/wbsp/file/uploadWithEncode',
+				'callBack': function(res) {
+					if (res.code == '200') {
+						$('#cardupPic').val('');
+						var fid = res.data.fid;
+						var encodeFid = res.data.encodeFid;
+						if(vm.imgType==0){
+							photosItem = {};
+							photosItem.fileId=fid;
+							photosItem.encodeFileId = encodeFid;
+							photosItem.name = name;
+							photosItem.subType = 0;
+							vm.planeArr.push(photosItem);
+						}
+						else if(vm.imgType==1){
+							photosItem = {};
+							photosItem.fileId=fid;
+							photosItem.encodeFileId = encodeFid;
+							photosItem.name = name;
+							photosItem.subType = 1;
+							vm.planeSignArr.push(photosItem);
+						}
+						else if(vm.imgType==2){
+							photosItem = {};
+							photosItem.fileId=fid;
+							photosItem.encodeFileId = encodeFid;
+							photosItem.name = name;
+							photosItem.subType = 2;
+							vm.profileArr.push(photosItem);
+						}
+					} else {
+						DX.optionTitle(res.msg);
+					}
+				}
+			})
+		})
+
+</script>
+

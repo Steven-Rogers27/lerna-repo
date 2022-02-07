@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>地理信息</title>
+	<link rel="stylesheet" href="../../static/common.css" />
+	<style>
+		.topBox {
+			width: calc(100% - 40px);
+			margin-top: 20px;
+			box-shadow: 0 0 9px #e6e1e1;
+			padding: 0 20px;
+			padding-bottom: 10px;
+		}
+	
+		.centerLine {
+			width: 100%;
+			background-color: #1e90ff;
+			height: 2px;
+			margin: 10px 0;
+		}
+	
+		.bootomCard {
+			display: flex;
+			flex-direction: column;
+			min-width: 0;
+			word-wrap: break-word;
+			background-color: #fff;
+			background-clip: border-box;
+			border-radius: .25rem;
+			border-width: 0;
+			border-radius: 0.4rem;
+			box-shadow: 0 2px 6px 0 rgba(114, 124, 245, .5);
+			-ms-flex: 1 1 auto;
+			flex: 1 1 auto;
+			padding: 15px;
+			z-index: 19;
+			margin-top: 10px;
+		}
+	
+		.cardInp-prepend {
+			margin-right: -1px;
+		}
+	
+		.cardInp-text {
+			width: 50px;
+			text-align: justify;
+			padding: 0.4rem 0.7rem;
+			display: inline-block;
+			text-justify: distribute-all-lines;
+			text-align-last: justify;
+			-moz-text-align-last: justify;
+			-webkit-text-align-last: justify;
+			-ms-flex-align: center;
+			align-items: center;
+			margin-bottom: 0;
+			font-size: 1rem;
+			font-weight: 400;
+			line-height: 1.5;
+			color: #495057;
+			text-align: center;
+			white-space: nowrap;
+			background-color: #e9ecef;
+			border: 1px solid #ced4da;
+			border-radius: .25rem;
+			border-bottom-right-radius: 0;
+			border-top-right-radius: 0;
+		}
+	
+		.cardInp>select:not(:first-child),
+		.cardInp>input[type=text]:not(:first-child),
+		.cardInp>input[type=date]:not(:first-child) {
+			border-top-left-radius: 0;
+			border-bottom-left-radius: 0;
+		}
+	
+		.cardInp>select,
+		.cardInp>input[type=text],
+		.cardInp>input[type=date] {
+			position: relative;
+			flex: 1 1 auto;
+			-ms-flex: 1 1 auto;
+			width: 45%;
+			margin-bottom: 0;
+		}
+	
+		.inputClass {
+			border-top-left-radius: 0;
+			border-bottom-left-radius: 0;
+			border: 1px solid #ced4da;
+			border-radius: .25rem;
+			-webkit-appearance: none;
+		}
+	
+		.amap-icon img {
+			width: 20px;
+			height: 25px;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="security-msg rightBox" style="padding-bottom: 30px;" id="configure" v-cloak>
+		<div class="bootomCard" style='width:calc(100% - 30px);'>
+			<div class="cardInp" style="display: flex;">
+				<div class="cardInp-prepend"><span class="cardInp-text">经纬度</span></div>
+				<input type="text" class="inputClass" style="outline: none;" readonly :title="lnglat" v-model="lnglat">
+				<div class="cardInp-prepend" style="margin-left: 20px;"><span class="cardInp-text">所处地区</span></div>
+				<select id="regionselect"
+					style="border: 1px solid #ced4da;border-radius: .25rem;border-top-left-radius: 0;border-bottom-left-radius: 0;border-left: none;"
+					v-model="regionId">
+					<option value="">项目部所处地区</option>
+					<option v-for='val,index in regionList' :value="val.id">{{val.name}}</option>
+				</select>
+			</div>
+			<div class="cardInp" style="display: flex;margin-top: 10px;">
+				<div class="cardInp-prepend"><span class="cardInp-text">地址</span></div>
+				<input id='address' type="text" class="inputClass" :title="lnglatAddress" v-model="lnglatAddress">
+				<div class="cardInp-prepend" style="margin-left: 20px;"><span
+						style="display: inline-block;width: 50px;border-radius: .25rem;padding: 0.4rem 0.7rem;line-height: 1.5;align-items: center;margin-bottom: 0;font-size: 1rem;font-weight: 400;line-height: 1.5;text-align: center;white-space: nowrap;border: 1px solid #ced4da;border-radius: .25rem;padding: 0.4rem 0.7rem;display: inline-block;"
+						class=" btnBlue" @click="save">保存</span></div>
+
+				<input id='address' readonly style="border: transparent;outline: none;cursor: auto;text-indent: 20px;"
+					type="text" class="inputClass" :title="lnglatAddress" placeholder="注:在地图上左击获取经纬度与位置信息">
+			</div>
+		</div>
+		<div class="topBox" style="text-align: center;overflow: hidden;height: 500px;" id="container">
+			<!-- <input type="text" class="input" style="position: absolute;top: 0px;z-index: 99999;border: 1px solid rgba(0, 227, 255, 0.51);width: 200px;left: 0;" placeholder="请输入关键字搜索" autocomplete="off" id="tipinput"> -->
+		</div>
+		<input type="text" class="input"
+			style="position: absolute;top: 132px;z-index: 999;border: 1px solid rgba(0, 227, 255, 0.51);width: 200px;left: 15px;"
+			placeholder="请输入关键字搜索" autocomplete="off" id="tipinput">
+		<span class="btnBlue ml20 nowAddress" style="position: fixed;top: 132px;left: 215px;z-index: 99;">当前位置</span>
+		<input id='lnglat' type="text" style="display: none;">
+	</div>
+</body>
+<script type="text/javascript" charset="utf-8" src="../../static/js/jquery-1.8.3.js"></script>
+<script type="text/javascript" charset="utf-8" src="../../static/dx.js"></script>
+<script type="text/javascript" charset="utf-8" src="../../static/js/vue.js"></script>
+<script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.15&key=10e5ffe5d01f6267cd92e9b494b8a1e2&plugin=AMap.Geocoder"></script>
+<script type="text/javascript">
+	var vm = new Vue({
+		el: "#configure",
+		data: {
+			//数据数组
+			list: [],
+			isflag: '', //是否是管理员
+			leaderList: [], //所有领导
+			departList: [], //所有部门
+			departid: '', //选中的部门id
+			leaderUid: '', //选中的领导id
+			historyList: [], //申请记录列表
+			pages: {
+				'pageSize': 20,
+				'pageIndex': 1
+			},
+			topList: [],
+
+			lnglat: '',
+			lnglatAddress: '',
+			regionId: '',
+			regionList: [],
+		},
+		mounted() {
+			var $this = this
+			this.getzhuantai()
+			this.getData()
+			setTimeout(function () {
+				$this.getMap()
+			}, 500)
+		},
+		methods: {
+			getzhuantai() {
+				var $this = this
+				DX.ajax_method({
+					'type': 'GET',
+					'url': "/hrs/hrsProject/findProjectStatus",
+					'callBack': function (res) {
+						if (res.code == 200) {
+							var objone = {}
+							$this.regionList = []
+							$.each(res.data.region, function (i, v) {
+								objone = {
+									id: v.tid,
+									name: v.identityName
+								}
+								$this.regionList.push(objone)
+							})
+						}
+					}
+				})
+			},
+			//打开地图
+			getMap() {
+				var $this = this
+				var map = new AMap.Map('container', {
+					zoom: 20,
+					resizeEnable: true
+				});
+				map.plugin('AMap.Geolocation', function () {
+					geolocation = new AMap.Geolocation({
+						enableHighAccuracy: true,
+						timeout: 10000,
+						buttonOffset: new AMap.Pixel(10, 20),
+						zoomToAccuracy: true,
+						buttonPosition: 'RB',
+					});
+					map.addControl(geolocation);
+					geolocation.getCurrentPosition();
+				});
+				var autocomplete = "";
+				AMap.plugin('AMap.Autocomplete', function () {
+					//实例化Autocomplete
+					var autoOptions = {
+						input: "tipinput" //使用联想输入的input的id
+					};
+					autocomplete = new AMap.Autocomplete(autoOptions);
+				})
+				AMap.event.addListener(autocomplete, "select", select);
+
+				function select(e) {
+					if (e.poi && e.poi.location) {
+						map.setZoom(15);
+						map.setCenter(e.poi.location);
+					}
+				}
+				var geocoder = new AMap.Geocoder({
+					city: "010", //城市设为北京，默认：“全国”
+					radius: 1000 //范围，默认：500
+				});
+				// var marker = new AMap.Marker();
+				var marker;
+				if ($this.lnglat != "") {
+					var arrLnglat = $this.lnglat.split(',')
+					var arr1Lnglat = []
+					arr1Lnglat.push(arrLnglat[1])
+					arr1Lnglat.push(arrLnglat[0])
+					marker, map = new AMap.Map("container", {
+						resizeEnable: true,
+						center: arr1Lnglat,
+						zoom: 13
+					});
+					document.getElementById('lnglat').value = arr1Lnglat.join(',')
+					firstPoint()
+					addMarker()
+					function firstPoint() {
+						var lnglat = document.getElementById('lnglat').value.split(',');
+						geocoder.getAddress(lnglat, function (status, result) {
+							if (status === 'complete' && result.regeocode) {
+								var address = result.regeocode.formattedAddress;
+								document.getElementById('address').value = address;
+								$this.lnglatAddress = address
+							} else {
+								DX.optionTitle('根据经纬度查询地址失败')
+								document.getElementById('address').value = '';
+							}
+						});
+					}
+					// 	// // 实例化点标记
+					function addMarker() {
+						marker = new AMap.Marker({
+							icon: '//a.amap.com/jsapi_demos/static/demo-center/icons/poi-marker-default.png',
+							position: arr1Lnglat,
+							offset: new AMap.Pixel(-13, -30)
+						});
+						marker.setMap(map);
+					}
+				}
+				// map.addControl(geolocation);
+				// geolocation.getCurrentPosition();
+
+				marker = new AMap.Marker();
+
+				function regeoCode() {
+					marker.setMap(null);
+					var lnglat = document.getElementById('lnglat').value.split(',');
+					map.add(marker);
+					marker.setPosition(lnglat);
+					geocoder.getAddress(lnglat, function (status, result) {
+						if (status === 'complete' && result.regeocode) {
+							var address = result.regeocode.formattedAddress;
+							document.getElementById('address').value = address;
+							$this.lnglatAddress = address
+						} else {
+							DX.optionTitle('根据经纬度查询地址失败')
+						}
+					});
+				}
+				map.on('click', function (e) {
+					document.getElementById('lnglat').value = e.lnglat;
+					// $this.lnglat = e.lnglat.getLat().toFixed(2) + ',' + e.lnglat.getLng().toFixed(2);
+					$this.lnglat = e.lnglat.getLat() + ',' + e.lnglat.getLng();
+					regeoCode();
+				})
+				$('.nowAddress').on('click', function (e) {
+					map.plugin('AMap.Geolocation', function () {
+						geolocation = new AMap.Geolocation({
+							enableHighAccuracy: true,
+							timeout: 10000,
+							buttonOffset: new AMap.Pixel(10, 20),
+							zoomToAccuracy: true,
+							buttonPosition: 'RB'
+						});
+						map.addControl(geolocation);
+						geolocation.getCurrentPosition();
+					});
+				})
+			},
+			getData() {
+				var $this = this
+				DX.ajax_method({
+					'url': '/hrs/hrsProject/findLoginProject',
+					'callBack': function (res) {
+						if (res.code == 200) {
+							$this.regionId = res.data.regionId
+							$this.lnglat = res.data.latLng
+							$this.lnglatAddress = res.data.address
+						} else {
+							DX.optionTitle(res.msg);
+						}
+					}
+				})
+			},
+			save() {
+				var $this = this;
+				if ($this.regionId == "") {
+					DX.optionTitle('请选择所处地区')
+					return
+				}
+				if ($this.lnglat == "") {
+					DX.optionTitle('请选择经纬度')
+					return
+				}
+				if ($this.lnglatAddress == "") {
+					DX.optionTitle('请填写详细地址')
+					return
+				}
+				DX.ajax_method({
+					'type': 'POST',
+					'url': '/hrs/hrsProject/saveProjectPosition',
+					'param': {
+						'regionId': $this.regionId,
+						'latLng': $this.lnglat,
+						'address': $this.lnglatAddress,
+					},
+					'callBack': function (res) {
+						if (res.code == 200) {
+							DX.optionTitle()
+							$this.getMap()
+							setTimeout(function(){
+								DX.domParent('vm.initChild()');
+								DX.closeModal();
+							}, 1000)
+						} else {
+							DX.optionTitle(res.msg);
+						}
+					}
+				})
+			},
+		},
+		watch: {}
+	})
+</script>
+
+</html>

@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>施工计划</title>
+		<link rel="stylesheet" href="../../static/common.css">
+		<link rel="stylesheet" href="../../static/elementui.css">
+		<link rel="stylesheet" type="text/css" href="../../static/ztree/zTreeStyle.css" />
+		<link rel="stylesheet" type="text/css" href="../../static/swiper/swiper.min.css" />
+		<style type="text/css">
+			[v-cloak] {
+				display: none;
+			}
+
+			html,
+			body {
+				height: calc(100% - 5px); 
+			}
+
+			/* 大的块块 */
+			#material {
+				height: calc(100% - 10px);
+				margin: 10px 0;
+			}
+			.content {
+				display: flex;
+				width: 100%;
+				height: 100%;
+				flex-wrap: nowrap;
+			}
+			.partLeft {
+				padding: 0 0px 10px 0px;
+			}
+			.partRight {
+				padding: 10px;
+				box-shadow: rgb(230, 225, 225) 0px 0px 9px;
+			}
+			.part1 {
+				width: 280px;
+				margin-right: 10px;
+				height: calc(100% - 10px);
+			}
+
+			.titleInfo {
+				border-bottom: 1px solid rgb(230, 230, 230);
+				padding: 8px 10px;
+				text-align: center;
+				height: 17px;
+			}
+			.ztree-content {
+				height:calc(100% - 25px);
+				overflow-y: auto;
+			}
+			/* 可编辑 */
+			input.excelEdit {
+				border: none;
+				height: 29px;
+				background: #F6F9E8;
+				text-align: center;
+				width: 100%;
+				outline: none;
+			}
+			/* 浏览器滚动条样式 */
+			.part1 ::-webkit-scrollbar {
+				width: 5px;
+				height: 5px;
+			}
+			
+			.part1 ::-webkit-scrollbar-thumb {
+				background: rgb(210, 210, 211);
+				border-radius: 8px;
+			}
+			
+			.part1 ::-webkit-scrollbar-thumb:hover {
+				background: rgb(175, 175, 176);
+			}
+			/* ::-webkit-scrollbar {
+				width: 5px;
+				height: 5px;
+			}
+			
+			::-webkit-scrollbar-thumb {
+				background: rgb(210, 210, 211);
+				border-radius: 8px;
+			}
+			
+			::-webkit-scrollbar-thumb:hover {
+				background: rgb(175, 175, 176);
+			} */
+			body{
+				margin: 10px 0;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="material" v-cloak>
+			<div class="content">
+				<img v-show="disabled" src='static/img/loading.gif' style="position: absolute;left:calc(50% - 50px );top:calc(50% - 50px); z-index: 9;"/>
+				<!-- 左边的树形结构 -->
+				<div class="part1 partLeft" style="border: 1px solid #e4e7ed;">
+					<div class="titleInfo" style="border-bottom: 1px solid #E6E6E6;">
+						WBS
+					</div>
+					<div class="ztree-content">
+						<div id="tree-moudle" class="ztree"></div>
+					</div>
+				</div>
+				<div style="flex-wrap: wrap;width: calc(100% - 292px);height:100%;border: 1px solid #e4e7ed;padding: 10px;box-sizing: border-box;">
+					<div style="height: 30px;margin-bottom: 10px;">
+						<div style="display: flex;align-items: center;" class="fr">
+							<!-- <el-switch
+							  v-model="value1"
+							  active-text="初始化紧前关系"
+							  style="margin-right: 10px;"
+							  >
+							</el-switch> -->
+							<button class="btnBlue" @click="refreshEvent()">刷新</button>
+							
+						</div>
+						
+					</div>
+					<el-table :data="tunnelList"  border highlight-current-row class="mt10" height="calc(100% - 40px)">
+						<el-table-column label="V级部位" min-width="120" :show-overflow-tooltip="true"  fixed="left">
+							<template slot-scope="scope">
+								<span style="padding:0 3px">
+									{{scope.row.nameL5}}
+								</span>
+							</template>
+						</el-table-column>
+						<el-table-column label="VI级部位" min-width="120" :show-overflow-tooltip="true" fixed="left">
+							<template slot-scope="scope">
+								<span style="padding:0 3px">
+									{{scope.row.nameL6}}
+								</span>
+							</template>
+						</el-table-column>
+						<el-table-column label="围岩级别" min-width="60">
+							<template slot-scope="scope">
+								{{scope.row.rockLevel}}
+							</template>
+						</el-table-column>
+						<el-table-column label="衬砌类型" min-width="120">
+							<template slot-scope="scope">
+								<span v-if="scope.row.liningType">{{scope.row.liningType.label}}</span>
+							</template>
+						</el-table-column>
+						<el-table-column label="起始里程" min-width="120">
+							<template slot-scope="scope">
+								{{scope.row.startMileage}}
+							</template>
+						</el-table-column>
+						<el-table-column label="终止里程" min-width="120">
+							<template slot-scope="scope">
+								{{scope.row.endMileage}}
+							</template>
+						</el-table-column>
+						<el-table-column label="长度(m)" min-width="60" show-overflow-tooltip>
+							<template slot-scope="scope">
+								{{scope.row.totalLength}}
+							</template>
+						</el-table-column>
+						<el-table-column label="中心里程" min-width="120">
+							<template slot-scope="scope">
+								{{scope.row.centerMileage}}
+							</template>
+						</el-table-column>
+						<el-table-column label="紧前部位" min-width="120" :show-overflow-tooltip="true">
+							<template slot-scope="scope">
+								<span style="padding:0 3px">{{scope.row.precedesName}}</span>
+							</template>
+						</el-table-column>
+						<el-table-column label="进度计划">
+							<!-- <el-table-column label="月进度指标(m/月)" width="120">
+								<template slot-scope="scope">
+									<input autocomplete="off" class="excelEdit" type="text" v-model="scope.row.processIndicator" @blur="saveMonthEvent(scope.row.id,scope.row.processIndicator)">
+								</template>
+						    </el-table-column> -->
+							<el-table-column :label="'月进度指标('+tableUnit+'/月)'" width="120">
+								<template slot-scope="scope">
+									<input autocomplete="off" class="excelEdit" type="text" v-model="scope.row.processIndicator" @blur="saveMonthEvent(scope.row.id,scope.row.processIndicator)">
+								</template>
+							</el-table-column>
+							<el-table-column label="计划开始时间" width="90">
+								<template slot-scope="scope">
+									<input autocomplete="off" class="excelEdit" type="text" :id="'time' + scope.row.id" v-model="scope.row.planStartTime"  @click="initTime(scope.row.id)"/>									
+								</template>
+							</el-table-column>
+							<el-table-column label="计划结束时间" width="90">
+								<template slot-scope="scope">
+									{{scope.row.planEndTime}}
+								</template>
+							</el-table-column>
+							<el-table-column label="预计开始时间" width="90">
+								<template slot-scope="scope" v-if="scope.row.implStartTime==''">
+									{{scope.row.expectStartTime}}
+								</template>
+							</el-table-column>	
+							<el-table-column label="预计结束时间" width="90">
+								<template slot-scope="scope" v-if="scope.row.implEndTime==''">
+									{{scope.row.expectEndTime}}
+								</template>
+							</el-table-column>
+							<el-table-column label="实际开始时间" width="90">
+								<template slot-scope="scope">
+									{{scope.row.implStartTime}}
+								</template>
+							</el-table-column>
+							<el-table-column label="实际结束时间" width="90">
+								<template slot-scope="scope">
+									{{scope.row.implEndTime}}
+								</template>
+							</el-table-column>
+							<el-table-column label="计划工天(d)" width="60">
+								<template slot-scope="scope">
+									{{scope.row.duration}}
+								</template>
+							</el-table-column>
+							<el-table-column label="工期预警(d)" width="60">
+								<template slot-scope="scope" v-if="scope.row.implStartTime!=''">
+									{{scope.row.warning}}
+								</template>
+							</el-table-column>
+						</el-table-column>
+						<el-table-column label="形象进度" min-width="120">
+							<el-table-column label="设计数量" width="60">
+								<template slot-scope="scope">
+									<!-- {{scope.row.imageDesignQuantity}} -->
+									<input autocomplete="off" class="excelEdit" type="text"  v-model="scope.row.imageDesignQuantity"  @blur="saveDesignEvent(scope.row.id,scope.row.imageDesignQuantity)"/>							
+								</template>
+						    </el-table-column>
+							<el-table-column label="开累完成数量" width="60">
+								<template slot-scope="scope">
+									{{scope.row.imageAccuQuantity}}
+								</template>
+							</el-table-column>
+							<el-table-column label="剩余数量" width="60">
+							     <template slot-scope="scope">
+							     	<!-- {{scope.row.imageLeftQuantity}} -->
+									{{scope.row.imageDesignQuantity | filterDecue(scope.row.imageAccuQuantity)}}
+							     </template>
+							</el-table-column>
+							<el-table-column label="单位" width="40">
+								<template slot-scope="scope">
+									{{scope.row.imageUnit}}
+								</template>
+							</el-table-column>
+						</el-table-column>
+					</el-table>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
+<script type="text/javascript" src="static/js/jquery-1.8.3.js"></script>
+<script type="text/javascript" src="static/dx.js"></script>
+<script type="text/javascript" src="static/ztree/jquery.ztree.all.min.js"></script>
+<script type="text/javascript" src="static/js/vue.js" charset="utf-8"></script>
+<script src="static/js/component.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/orderTree.js"></script>
+<script src="static/js/elementui.js"></script>
+<script src="static/laydate/laydate.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+	
+</script>
+<script type="text/javascript">
+	var vm = new Vue({
+		el: "#material",
+		data: {
+			tunnelList:[],
+			// originalList:[],
+			diff:'',
+			the4thWbsId:'',
+			disabled:false,
+			value1:false,
+			tableUnit:'m'
+		},
+		mounted: function() {
+			setTimeout(function(){
+				getTreeMessage();
+			},100)
+		},
+		methods: {
+			refreshEvent:function(){
+				// console.log(this.originalList);
+				// console.log(this.tunnelList);
+				// var finalArr=[];
+				// for(var i=0;i<this.originalList.length;i++){
+				// 	for(var j=0;j<this.tunnelList.length;j++){
+				// 		if(this.originalList[i].id==this.tunnelList[j].id){
+				// 			if(this.originalList[i].planStartTime!=this.tunnelList[j].planStartTime||this.originalList[i].processIndicator!=this.tunnelList[j].processIndicator){
+				// 				finalArr.push(this.tunnelList[j]);
+				// 			}
+				// 		}
+				// 	}
+				// }
+				// console.log(finalArr);
+				// console.log(finalArr.length);
+				// if(finalArr.length<=0){
+				// 	DX.optionTitle('无需刷新！')
+				// 	return;
+				// }
+				var tunnelPlanDto={
+					// the6thWbsParamList:[]
+				}
+				tunnelPlanDto.the4thWbsId=this.the4thWbsId;
+				// if(finalArr.length>0){
+				// 	for(var i=0;i<finalArr.length;i++){
+				// 		var obj={
+				// 			"designLength":'',
+				// 		    "isUserSetting":'',
+				// 		    "planStartDate":'',
+				// 		    "progressIndicator":'',
+				// 		    "the6thWbsId":'',
+				// 		    "totalFinishedLength":''
+				// 		}
+				// 		obj.designLength=finalArr[i].imageDesignQuantity;
+				// 		obj.planStartDate=finalArr[i].planStartTime;
+				// 		obj.progressIndicator=finalArr[i].processIndicator;
+				// 		obj.the6thWbsId=finalArr[i].id;
+				// 		obj.totalFinishedLength=finalArr[i].imageAccuQuantity;
+				// 		tunnelPlanDto.the6thWbsParamList.push(obj);
+				// 	}
+				// }
+				var that=this;
+				that.disabled =true;
+				DX.ajax_method({
+					'url': '/algp/plan/tunnel/refreshAndGetPlan',
+					'type': "POST",
+					'param': {
+						"the4thWbsId":that.the4thWbsId
+					},
+					'callBack': function(res) {
+						if (res.code == 200) {
+							console.log('调用完成-------------------------------');
+							console.log(res.data);
+							that.disabled=false;
+							DX.optionTitle('刷新成功！');
+							if(res.data.length>0){
+								for(var i=0;i<res.data.length;i++){
+									console.log('11111'+new Date());
+									for(var j=0;j<that.tunnelList.length;j++){
+										console.log(res.data[i].id+new Date());
+										if(res.data[i].id==that.tunnelList[j].id){
+											if(res.data[i].planStartTime){
+												var arr=res.data[i].planStartTime.split(' ')
+												that.$set(that.tunnelList[j],"planStartTime",arr[0]);
+											}
+										    if(res.data[i].planEndTime){
+										    	var arr=res.data[i].planEndTime.split(' ')
+										    	that.$set(that.tunnelList[j],"planEndTime",arr[0]);
+										    }
+											if(res.data[i].expectStartTime){ 
+												var arr=res.data[i].expectStartTime.split(' ')
+												that.$set(that.tunnelList[j],"expectStartTime",arr[0]);
+											}
+											if(res.data[i].expectEndTime){
+												var arr=res.data[i].expectEndTime.split(' ')
+												that.$set(that.tunnelList[j],"expectEndTime",arr[0]);
+											}
+											if(res.data[i].planStartTime&&res.data[i].planEndTime){
+												var diff=vm.TimeDiff(res.data[i].planStartTime,res.data[i].planEndTime);
+												that.$set(that.tunnelList[j],"duration",diff);
+											}
+											if(res.data[i].expectEndTime&&res.data[i].planEndTime){
+												var diff1=vm.TimeDiff(res.data[i].planEndTime,res.data[i].expectEndTime);
+												that.$set(that.tunnelList[j],"warning",diff1);
+											}
+											if(res.data[i].precedes.length>0){
+												if(res.data[i].precedes.length==1){
+													res.data[i].precedesName=res.data[i].precedes[0].name;
+												}
+												else if(res.data[i].precedes.length>1){
+													for(var k=0;k<res.data[i].precedes.length;k++){
+														if(k<res.data[i].precedes.length-1){
+															res.data[i].precedesName+=res.data[i].precedes[k].name+';';
+														}
+														else if(k==res.data[i].precedes.length-1){
+															res.data[i].precedesName+=res.data[i].precedes[k].name+'。';
+														}
+													}
+												}
+												that.$set(that.tunnelList[j],"precedesName",res.data[i].precedesName);
+											}
+											if(res.data[i].imageAccuQuantity){
+												that.$set(that.tunnelList[j],"imageAccuQuantity",res.data[i].imageAccuQuantity);
+											}
+											if(res.data[i].imageDesignQuantity){
+												that.$set(that.tunnelList[j],"imageDesignQuantity",res.data[i].imageDesignQuantity);
+											}
+											if(res.data[i].imageLeftQuantity){
+												that.$set(that.tunnelList[j],"imageLeftQuantity",res.data[i].imageLeftQuantity);
+											}
+											if(res.data[i].imageUnit){
+												that.$set(that.tunnelList[j],"imageUnit",res.data[i].imageUnit);
+											}
+										}
+									}
+								}
+								that.originalList=JSON.parse(JSON.stringify(that.tunnelList));
+								setTimeout(function(){
+									$.each(that.tunnelList,function(index,v){
+										that.initTime(v.id)
+									})
+								},500)
+							}
+						} 
+						else {
+							that.disabled=false;
+							DX.optionTitle(res.msg);
+						}
+					}
+				});
+			},
+			// 计算时间差
+			TimeDiff:function(dateString1,dateString2){
+				 if(dateString1==''||dateString2==''){
+					 return;
+				 }
+				 var  startDate = Date.parse(dateString1);
+			     var  endDate = Date.parse(dateString2);
+			     var days=(endDate - startDate)/(1*24*60*60*1000);
+				 return  days;
+			},
+			// 动态时间
+			initTime: function(i) {
+				var timeid
+				var timetime
+				var nowTime=new Date();   
+				$this = this;
+				laydate.render({
+					elem: '#time' + i,
+					type: 'date',
+					trigger: 'click',
+					format: 'yyyy-MM-dd',
+					done: function(date) {
+						for (var j = 0; j < $this.tunnelList.length; j++) {
+							if (i == $this.tunnelList[j].id) {
+								$this.tunnelList[j].planStartTime= date;
+							}
+							if($this.tunnelList[j].planStartTime!=''&&$this.tunnelList[j].planEndTime!=''){
+								var diff;
+							    diff=$this.TimeDiff($this.tunnelList[j].planStartTime,$this.tunnelList[j].planEndTime);
+								$this.$set($this.tunnelList[j],"duration",diff);
+							}
+						}
+						$this.saveTimeEvent(i,date);
+					}
+				})
+			},
+			saveMonthEvent:function(id,month){
+				if(id==''||month==''){
+					return;
+				}
+				var that=this;
+				DX.ajax_method({
+					'url': '/algp/xact/modifyXWbsProcessIndicator',
+					'type': "POST",
+					'param': {
+						'id':id,
+						'processIndicator':month
+					},
+					'callBack': function(res) {
+						if (res.code == 200) {
+							
+						} else {
+							alert(res.msg);
+						}
+					}
+				})
+			},
+			saveTimeEvent:function(id,time){
+				if(id==''||time==''){
+					return;
+				}
+				var Finaltime=time+' 00:00:00'
+				DX.ajax_method({
+					'url': '/algp/xact/modifyXWbsPlanStartTime',
+					'type': "POST",
+					'param': {
+						'id':id,
+						'planStartTime':Finaltime
+					},
+					'callBack': function(res) {
+						if (res.code == 200) {
+							
+						} else {
+							alert(res.msg);
+						}
+					}
+				});
+			},
+			saveDesignEvent:function(id,design){
+				if(id==''||design==''){
+					return;
+				}
+				var that=this;
+				DX.ajax_method({
+					'url': '/algp/imageProgress/modifyQuantityDesign',
+					'type': "POST",
+					'param': {
+						'id':id,
+						'quantityDesign':design
+					},
+					'callBack': function(res) {
+						if (res.code == 200) {
+							
+						} else {
+							alert(res.msg);
+						}
+					}
+				})
+			}
+		},
+		filters: {
+			filterDecue:function(val1,val2){
+				return (val1-val2).toFixed(1);
+			}
+		},
+		watch:{
+			
+		}
+	})
+</script>
+<script>
+	
+</script>

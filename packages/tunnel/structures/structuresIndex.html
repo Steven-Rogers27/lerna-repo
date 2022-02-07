@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>构筑物</title>
+		<link rel="stylesheet" href="../../static/common.css">
+		<link rel="stylesheet" href="../../static/elementui.css">
+		<link rel="stylesheet" type="text/css" href="../../static/ztree/zTreeStyle.css" />
+		<link rel="stylesheet" href="../static/css/addCom.css">
+		<link rel="stylesheet" type="text/css" href="../../static/swiper/swiper.min.css" />
+		<!-- 按钮组件 -->
+		<link rel="stylesheet" href="../../static/component.css">
+		<link rel="stylesheet" href="../../static/tableFont.css">
+		<style type="text/css">
+			[v-cloak] {
+				display: none;
+			}
+			.infoBox {
+				display: flex;
+				align-items: center;
+				margin: 10px 0;
+				justify-content: space-between;
+				flex-wrap: wrap;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="subCom" v-cloak>
+			<div class="infoBox">
+				<div style="display: flex;align-items: center;">
+					<button class="btnBlue" style="margin-right: 10px;" @click="chooseCom()">添加构筑物</button>
+					<div class="mr10">
+						<label>构筑物类型: </label>
+					    <el-select v-model="typeName" filterable  placeholder="请选择" style="width:160px" @change="fnChange()">
+							<el-option label="全部" value=""></el-option>
+					        <el-option
+					          v-for="item,index in typeList"
+					          :key="item.code"
+					          :label="item.name"
+					          :value="item.code">
+					        </el-option>
+					      </el-select>
+					</div>
+					<div class="mr10">
+						<input placeholder="输入构筑物名称搜索" class="input" style="width: 170px;" v-model="conditions"/>
+					</div>
+				</div>
+			</div>
+			<el-table :data="deparComList"  border default-expand-all class="mt10"  :header-cell-style="{'text-align':'center'}">
+				<el-table-column label="序号" type="index" header-align="center" min-width="4%">
+				</el-table-column>
+				<el-table-column label="构筑物名称" align="center" header-align="center" min-width="20%"> 
+					<template slot-scope="scope">
+						<span class="listToDetail" @click="ShowDetailEvent(scope.row.id)">{{scope.row.name}}</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="构筑物类型" align="center" header-align="center" min-width="20%">
+					<template slot-scope="scope">
+					    <span>{{scope.row.typeName}}</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="起点里程" min-width="15%"  :show-overflow-tooltip="true" align="center">
+					<template slot-scope="scope">
+						 <span>{{scope.row.startMileage}}</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="终点里程" align="center" header-align="center" min-width="15%">
+					<template slot-scope="scope">
+						 <span>{{scope.row.endMileage}}</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="中心里程" align="center" min-width="13%" :show-overflow-tooltip="true">
+					<template slot-scope="scope">
+						<span>{{scope.row.extra.centerMileage}}</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="长度" align="center" header-align="center" min-width="13%">
+					<template slot-scope="scope">
+						 <span>{{scope.row.totalLength}}</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="计划开始时间" align="center" header-align="center" min-width="13%">
+					<template slot-scope="scope">
+						 <span>{{scope.row.planStartDate}}</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="计划结束时间" align="center" header-align="center" min-width="15%">
+					<template slot-scope="scope">
+						<span>{{scope.row.planEndDate}}</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="操作" align="center" header-align="center" min-width="10%">
+					<template slot-scope="scope">
+						<i class="fa fa-eye" title="详情" @click="ShowDetailEvent(scope.row.id)"></i>
+						<i class="fa fa-trash-alt" title="删除" @click="delEvent(scope.row.id)"></i>
+					</template>
+				</el-table-column>
+			</el-table>
+            <div class="page1" style="margin: 10px 0;"></div>
+		</div>
+	</body>
+</html>
+<script type="text/javascript" src="../../static/js/jquery-1.8.3.js"></script>
+<script type="text/javascript" src="../../static/dx.js"></script>
+<script type="text/javascript" src="../../static/js/vue.js" charset="utf-8"></script>
+<script src="../../static/js/component.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../static/js/elementui.js"></script>
+<script src="../../static/ztree/jquery.ztree.all.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../static/js/pages.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../static/swiper/swiper.min.js" type="text/javascript" charset="utf-8"></script>
+<!-- 按钮组件 -->
+<script src="../../static/js/componentOne.js"></script>
+<script src="../../static/js/componentTwo.js"></script>
+<script type="text/javascript">
+	var vm = new Vue({
+		el: "#subCom",
+		data: {
+			comTypeList:[],
+			conditions:'',
+			deparComList:[{
+				extra:{}
+			}],
+			typeList:[],
+			typeName:'',
+		},
+		mounted: function() {
+			this.initDate();
+			// 获取构筑物类型
+			this.getType();
+		},
+		methods: {
+			initChild:function(){
+				DX.reloadByIframeId("add.html", 'vm.getMapData()');
+			},
+			fnChange:function(){
+				this.initDate();
+			},
+			delEvent:function(id){
+				var r = confirm('确认删除吗?');
+				if(r){
+					var that=this;
+					// var obj={
+					// 	buildingId:''
+					// }
+					// obj.buildingId=id;
+					DX.ajax_method({
+						'url': '/wbsp/building/deleteBuilding',
+						'param': {
+							'buildingId':id
+						},
+						// data:obj,
+						'type':'POST',
+						'callBack': function(res) {
+							if (res.code == 200) {
+								DX.optionTitle('删除成功！');
+								that.initDate();
+							} else {
+								alert(res.msg);
+							}
+						}
+					})
+				}
+			},
+			getType:function(){
+				var that=this;
+				DX.ajax_method({
+					'url': '/wbsp/building/getProjectTypes',
+					'param': {
+						'projectId':''
+					},
+					'callBack': function(res) {
+						if (res.code == 200) {
+							that.typeList=res.data;
+						} else {
+							alert(res.msg);
+						}
+					}
+				})
+			},
+			initDate:function(id){
+				var that=this;
+				DX.ajax_method({
+					'url': '/wbsp/building/listBuilding',
+					'param': {
+						'type':that.typeName,
+						'keyword':that.conditions
+					},
+					'callBack': function(res) {
+						if (res.code == 200) {
+							for(var i=0;i<res.data.length;i++){
+								res.data[i].extra=JSON.parse(res.data[i].extra)
+								res.data[i].startMileage=that.format(res.data[i].startMileage,res.data[i].mileagePrefix,res.data[i].mileageFormat);
+								res.data[i].endMileage=that.format(res.data[i].endMileage,res.data[i].mileagePrefix,res.data[i].mileageFormat);
+								res.data[i].extra.centerMileage=that.format(res.data[i].extra.centerMileage,res.data[i].mileagePrefix,res.data[i].mileageFormat);
+							}
+							that.deparComList=res.data;
+							// 刷新子页面
+							if(id){
+							  that.refreshChild(id);
+							}
+						} else {
+							alert(res.msg);
+						}
+					}
+				})
+			},
+			// format:function(value, prefix, format){
+			// 	var K_SYMBOL = "K";
+			// 	var L_SYMBOL = "+";
+			// 	// 123456.7
+			// 	var valueStr = value.toString();
+			// 	var indexOfPot = valueStr.lastIndexOf(".");
+			// 	var decimalStr = "0." + ((indexOfPot == -1) ? "000" : valueStr.substring(indexOfPot + 1))
+			// 	var decimal = parseFloat(decimalStr);
+			// 	// 获取公里级
+			// 	var kilemeter = parseInt(value / 1000);
+			// 	// 获取米级 带小数
+			// 	var meter = parseInt(value) - kilemeter * 1000 + decimal;
+				
+			// 	switch(format){
+			// 		case "K#+###.###":
+			// 			return prefix + K_SYMBOL + kilemeter + L_SYMBOL + meter.toFixed(3);
+			// 		case "+###.###":
+			// 			return prefix + L_SYMBOL + meter.toFixed(3);
+			// 		case "K#":
+			// 			return prefix + K_SYMBOL + kilemeter;
+			// 		case "+#":
+			// 			return prefix + L_SYMBOL + meter.toFixed(0);
+			// 		case "K#+###":
+			// 			return prefix + K_SYMBOL + kilemeter + L_SYMBOL + meter.toFixed(0);
+			// 		case "K#+###.##":
+			// 			return prefix + K_SYMBOL + kilemeter + L_SYMBOL + meter.toFixed(2);
+			// 		case "K#+###.#":
+			// 			return prefix + K_SYMBOL + kilemeter + L_SYMBOL + meter.toFixed(1);
+			// 		case "+###.##":
+			// 			return prefix + L_SYMBOL + meter.toFixed(2);
+			// 		case "+###.#":
+			// 			return prefix + L_SYMBOL + meter.toFixed(1);
+			// 		default:
+			// 			return "";
+			// 	}
+			// },
+			
+			format:function(value, prefix, format){
+				// debugger
+				
+				var K_SYMBOL = "K";
+				var L_SYMBOL = "+";
+				// 123456.7
+				var valueStr = value.toString();
+				var indexOfPot = valueStr.lastIndexOf(".");
+				var decimalStr = "0." + ((indexOfPot == -1) ? "000" : valueStr.substring(indexOfPot + 1))
+				var decimal = parseFloat(decimalStr);
+				// 获取公里级
+				var kilemeter = parseInt(value / 1000);
+				// 获取米级 带小数
+				var meter = parseInt(value) - kilemeter * 1000 + decimal;
+				switch(format){
+					case "K#+###.###":
+					    var final=this.finalDeal(meter.toFixed(3));
+						return prefix + K_SYMBOL + kilemeter + L_SYMBOL +final;
+					case "+###.###":
+					    var final=this.finalDeal(meter.toFixed(3));
+						return prefix + L_SYMBOL + final;
+					case "K#":
+						return prefix + K_SYMBOL + kilemeter;
+					case "+#":
+					    var final=this.finalDeal(meter.toFixed(0));
+						return prefix + L_SYMBOL + final;
+					case "K#+###":
+					    var final=this.finalDeal(meter.toFixed(0));
+						return prefix + K_SYMBOL + kilemeter + L_SYMBOL + final;
+					case "K#+###.##":
+					    var final=this.finalDeal(meter.toFixed(2));
+						return prefix + K_SYMBOL + kilemeter + L_SYMBOL + final;
+					case "K#+###.#":
+					    var final=this.finalDeal(meter.toFixed(1));
+						return prefix + K_SYMBOL + kilemeter + L_SYMBOL + final;
+					case "+###.##":
+					    var final=this.finalDeal(meter.toFixed(2));
+						return prefix + L_SYMBOL + final;
+					case "+###.#":
+					    var final=this.finalDeal(meter.toFixed(1));
+						return prefix + L_SYMBOL + final;
+					default:
+						return "";
+				}
+			},
+			finalDeal:function(result){
+				var finalResult;
+				var resultStr=parseInt(result).toString();
+				if(resultStr.length==0){
+					finalResult='000'
+				}
+				else if(resultStr.length==1){
+					finalResult='00'+result;
+				}
+				else if(resultStr.length==2){
+					finalResult='0'+result;
+				}
+				else if(resultStr.length==3){
+					finalResult=result;
+				}
+				return finalResult;
+			},
+			refreshChild: function(id) {
+				// DX.reloadByIframeId("detail.html", 'vm.getDetail(' + id + ')');
+				window.location.href="detail.html?id="+id
+			},
+			chooseCom:function(){
+				window.dialog('add.html', '添加构筑物', false, 1000, 700);
+			},
+			selectFn:function(){
+				
+			},
+			ShowDetailEvent:function(id){
+				window.location.href="detail.html?id="+id
+			}
+		},
+		watch:{
+			conditions:function(newValue,oldValue){
+				if(newValue != oldValue){
+					this.initDate()
+				}
+			},
+		},
+		filters:{
+			colorFilter:function(val){
+				if(val){
+					return 'color1';
+				}else{
+					return 'color2';
+				}
+			}
+		}
+	})
+</script>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<link rel="stylesheet" href="../../static/common.css">
+		<link rel="stylesheet" href="../../static/elementui.css">
+		<style type="text/css">
+			[v-cloak] {
+				display: none;
+			}
+			#table{
+				margin: 10px 0;
+			}
+			
+			.submit {
+				margin: 20px 0 20px 0;
+				position: fixed;
+				bottom:0;
+			}
+			.ztree-content{
+				height: calc(100% - 70px);
+				overflow: auto;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="table" v-cloak>
+			<div class="ztree-content">
+				<div id="tree-moudle" class="ztree"></div>
+			</div>
+			<div class="submit" style="width:calc(100% - 32px);">
+				<div style="display: flex;justify-content: center;">
+					<button class="btnBlue" @click="confirmEvent()">确定</button>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
+<script type="text/javascript" src="../../static/js/jquery-1.8.3.js"></script>
+<script type="text/javascript" src="../../static/dx.js"></script>
+<script type="text/javascript" src="../../static/js/vue.js" charset="utf-8"></script>
+<script src="../../static/js/component.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../static/js/elementui.js"></script>
+<script src="../../static/ztree/jquery.ztree.all.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../static/laydate/laydate.js" type="text/javascript" charset="utf-8"></script>
+<script src="../static/js/position.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+	var vm = new Vue({
+		el: "#table",
+		data: {
+			
+		},
+		mounted: function() {
+			
+		},
+		methods: {
+			confirmEvent:function(){
+				DX.closeModal();
+			}
+		},
+		filters:{
+			
+		},
+	})
+</script>
